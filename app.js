@@ -1,4 +1,6 @@
-// Ganti dengan konfigurasi dari Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyCc4ix1uGCaE-rsyM6Lg3jo6SzVjbXYCmw",
   authDomain: "crypto-mining-d3811.firebaseapp.com",
@@ -8,50 +10,54 @@ const firebaseConfig = {
   appId: "1:1068882455445:web:362538bf3bb36c598f649c"
 };
 
-// Inisialisasi Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-const emailEl = document.getElementById("email");
-const passwordEl = document.getElementById("password");
-const messageEl = document.getElementById("message");
+const emailEl = document.getElementById('email');
+const passEl = document.getElementById('password');
+const msgEl = document.getElementById('message');
+const btnLogin = document.getElementById('btnLogin');
+const btnReg = document.getElementById('btnRegister');
+const themeBtn = document.getElementById('themeBtn');
 
-// Register user baru
-function register() {
-  const email = emailEl.value;
-  const password = passwordEl.value;
+let dark = true;
+themeBtn.addEventListener('click', () => {
+  dark = !dark;
+  document.getElementById('body').className = dark ? 'bg-gray-900 text-white min-h-screen flex items-center justify-center' : 'bg-white text-black min-h-screen flex items-center justify-center';
+});
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(userCredential => {
-      const user = userCredential.user;
-      user.sendEmailVerification()
-        .then(() => {
-          messageEl.textContent = "Pendaftaran berhasil. Cek email untuk verifikasi!";
-        });
-    })
-    .catch(error => {
-      messageEl.textContent = error.message;
-    });
+function show(msg, color='red'){
+  msgEl.textContent = msg;
+  msgEl.className = color==='red' ? 'mt-4 text-center text-sm text-red-400' : 'mt-4 text-center text-sm text-green-400';
 }
 
-// Login user
-function login() {
-  const email = emailEl.value;
-  const password = passwordEl.value;
+btnReg.addEventListener('click', async () => {
+  const email = emailEl.value.trim();
+  const pass = passEl.value;
+  if(!email || pass.length < 6) return show('Masukkan email valid dan password minimal 6 karakter.');
+  try{
+    const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+    await sendEmailVerification(userCred.user);
+    show('Pendaftaran berhasil — cek email untuk verifikasi.', 'green');
+    await signOut(auth);
+  }catch(e){ show(e.message); }
+});
 
-  auth.signInWithEmailAndPassword(email, password)
-    .then(userCredential => {
-      const user = userCredential.user;
-      if (user.emailVerified) {
-        messageEl.textContent = "Login berhasil!";
-        // redirect ke halaman utama
-        window.location.href = "dashboard.html";
-      } else {
-        messageEl.textContent = "Email belum diverifikasi. Cek inbox Anda.";
-        auth.signOut();
-      }
-    })
-    .catch(error => {
-      messageEl.textContent = error.message;
-    });
-}
+btnLogin.addEventListener('click', async () => {
+  const email = emailEl.value.trim();
+  const pass = passEl.value;
+  if(!email || !pass) return show('Isi email & password.');
+  try{
+    const userCred = await signInWithEmailAndPassword(auth, email, pass);
+    if(userCred.user.emailVerified){
+      window.location.href = 'dashboard.html';
+    } else {
+      show('Email belum diverifikasi. Cek inbox.');
+      await signOut(auth);
+    }
+  }catch(e){ show(e.message); }
+});
+
+onAuthStateChanged(auth, (u) => {
+  if(u && u.emailVerified){ window.location.href = 'dashboard.html'; }
+});

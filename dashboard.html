@@ -2,176 +2,31 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Crypto Mining Dashboard</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    body.dark {
-      background-color: #121212;
-      color: white;
-    }
-    body.dark input, body.dark select {
-      background-color: #222;
-      color: white;
-      border: 1px solid #555;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .buttons button {
-      margin-right: 5px;
-      padding: 5px 10px;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
+  <script type="module" src="dashboard.js"></script>
 </head>
 <body>
-  <div class="header">
-    <h1>Crypto Mining Dashboard</h1>
-    <div>
-      <button id="themeToggle">🌙</button>
-      <button id="logoutBtn" class="logout">Logout</button>
+  <div class="dashboard-container">
+    <h1>🚀 Crypto Mining</h1>
+    <div class="coin-section">
+      <span id="coinCount">0</span> 🪙
     </div>
-  </div>
-
-  <div class="status">
-    <span>Logged in as <b id="userEmail">-</b></span>
-    <span>Status <b style="color:green;">Verified</b></span>
-  </div>
-
-  <div class="mining">
-    <h2>Simulasi Mining</h2>
-    <label>Hashrate (H/s): <input type="number" id="hashrate" value="500"></label>
-    <label>Pilih Koin:
-      <select id="coin">
-        <option value="ETH">Ethereum (ETH)</option>
-        <option value="BTC">Bitcoin (BTC)</option>
-        <option value="DOGE">Dogecoin (DOGE)</option>
-      </select>
-    </label>
-    <label>Target durasi (jam): <input type="number" id="duration" placeholder="opsional"></label>
-    <div class="buttons">
-      <button id="startBtn" style="background:green;">Mulai</button>
-      <button id="stopBtn" style="background:red;">Stop</button>
-      <button id="resetBtn" style="background:orange;">Reset</button>
+    <div class="controls">
+      <button id="startBtn">Mulai</button>
+      <button id="stopBtn">Stop</button>
+      <button id="resetBtn">Reset</button>
     </div>
-    <div>Total Koin: <b id="totalCoins">0.00000000</b></div>
+    <div class="progress-bar">
+      <div id="progressFill"></div>
+    </div>
+    <select id="durationSelect">
+      <option value="10">10 Detik</option>
+      <option value="30">30 Detik</option>
+      <option value="60">60 Detik</option>
+    </select>
+    <button id="logoutBtn" class="logout">Logout</button>
   </div>
-
-<script type="module">
-  // === Firebase Auth v10 ===
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCc4ix1uGCaE-rsyM6Lg3jo6SzVjbXYCmw",
-    authDomain: "crypto-mining-d3811.firebaseapp.com",
-    projectId: "crypto-mining-d3811",
-    storageBucket: "crypto-mining-d3811.appspot.com",
-    messagingSenderId: "1068882455445",
-    appId: "1:1068882455445:web:362538bf3bb36c598f649c"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  const userEmailEl = document.getElementById("userEmail");
-  const logoutBtn = document.getElementById("logoutBtn");
-
-  onAuthStateChanged(auth, (user) => {
-    if (user && user.emailVerified) {
-      userEmailEl.textContent = user.email;
-    } else {
-      window.location.href = "index.html";
-    }
-  });
-
-  logoutBtn.addEventListener("click", () => {
-    signOut(auth).then(() => window.location.href = "index.html");
-  });
-
-  // === Tema Gelap/Terang ===
-  const themeToggle = document.getElementById("themeToggle");
-  if (localStorage.getItem("theme") === "dark") {
-    document.body.classList.add("dark");
-    themeToggle.textContent = "☀️";
-  }
-  themeToggle.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    if (document.body.classList.contains("dark")) {
-      localStorage.setItem("theme", "dark");
-      themeToggle.textContent = "☀️";
-    } else {
-      localStorage.setItem("theme", "light");
-      themeToggle.textContent = "🌙";
-    }
-  });
-
-  // === Simulasi Mining dengan LocalStorage ===
-  let miningInterval;
-  let totalCoins = parseFloat(localStorage.getItem("totalCoins")) || 0;
-  let isMining = localStorage.getItem("isMining") === "true";
-
-  const hashrateInput = document.getElementById("hashrate");
-  const coinSelect = document.getElementById("coin");
-  const durationInput = document.getElementById("duration");
-  const totalCoinsEl = document.getElementById("totalCoins");
-
-  totalCoinsEl.textContent = totalCoins.toFixed(8);
-
-  function startMining() {
-    const hashrate = parseFloat(hashrateInput.value) || 0;
-    const duration = parseFloat(durationInput.value) || null;
-    const coin = coinSelect.value;
-
-    if (hashrate <= 0) {
-      alert("Hashrate harus lebih dari 0");
-      return;
-    }
-
-    let elapsedHours = 0;
-    isMining = true;
-    localStorage.setItem("isMining", "true");
-    clearInterval(miningInterval);
-    miningInterval = setInterval(() => {
-      const rewardPerSecond = hashrate / 1000000; // simulasi
-      totalCoins += rewardPerSecond;
-      totalCoinsEl.textContent = totalCoins.toFixed(8);
-      localStorage.setItem("totalCoins", totalCoins);
-      elapsedHours += 1/3600;
-
-      if (duration && elapsedHours >= duration) {
-        stopMining();
-        alert("Target durasi tercapai!");
-      }
-    }, 1000);
-  }
-
-  function stopMining() {
-    clearInterval(miningInterval);
-    isMining = false;
-    localStorage.setItem("isMining", "false");
-  }
-
-  function resetMining() {
-    stopMining();
-    totalCoins = 0;
-    totalCoinsEl.textContent = "0.00000000";
-    localStorage.setItem("totalCoins", "0");
-  }
-
-  document.getElementById("startBtn").addEventListener("click", startMining);
-  document.getElementById("stopBtn").addEventListener("click", stopMining);
-  document.getElementById("resetBtn").addEventListener("click", resetMining);
-
-  // Auto resume mining jika sebelumnya aktif
-  if (isMining) {
-    startMining();
-  }
-</script>
 </body>
 </html>
