@@ -1,177 +1,623 @@
+<!DOCTYPE html><html lang="id" class="dark">
+<head>
+  <!-- ======= BASIC SEO ======= -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mining Crypto di — Realtime + Estimasi Harga</title>
+  <meta name="description" content="mining crypto dengan grafik realtime, harga koin live dari CoinGecko, dan estimasi pendapatan otomatis per jam, hari, dan bulan." />
+  <meta name="keywords" content="mining crypto, mining, kalkulator mining, bitcoin, ethereum, electroneum" />
+  <meta name="author" content="Mining Crypto" />
+  <meta name="theme-color" content="#111827" />  <!-- ======= ICONS (optional placeholders) ======= -->  <link rel="icon" href="/favicon.ico" />  <!-- ======= LIBS ======= -->  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script> tailwind.config = { darkMode: 'class' } </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  <style>
+    body{transition:background-color .3s,color .3s}
+  </style></head>
+<body class="bg-gray-900 text-gray-100 font-sans">
+  <!-- ======= HEADER ======= -->
+  <header class="bg-indigo-600/90 backdrop-blur text-white px-6 py-5">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold">Mining Crypto di HP</h1>
+        <p class="text-sm sm:text-base opacity-90">Grafik realtime + estimasi pendapatan berbasis harga live</p>
+      </div>
+      <button id="themeToggle" class="rounded-2xl px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-lg">🌙</button>
+    </div>
+  </header>  <!-- ======= MAIN ======= -->  <main class="max-w-5xl mx-auto p-6 grid gap-6"><!-- Controls Card -->
+<section class="bg-gray-800 shadow rounded-2xl p-5">
+  <h2 class="text-xl font-semibold mb-4">Simulasi Mining di HP</h2>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <label class="block">
+      <span class="block mb-1 font-medium text-gray-300">Hashrate HP (H/s)</span>
+      <input id="hashrate" type="number" min="1" step="1" placeholder="contoh: 500" class="w-full rounded-xl border border-gray-700 p-2.5 bg-gray-900 text-gray-100" />
+    </label>
+    <label class="block">
+      <span class="block mb-1 font-medium text-gray-300">Jenis Koin</span>
+      <select id="coin" class="w-full rounded-xl border border-gray-700 p-2.5 bg-gray-900 text-gray-100">
+        <option value="BTC">₿ Bitcoin (BTC)</option>
+        <option value="ETH">Ξ Ethereum (ETH)</option>
+        <option value="ETN">Ⓔ Electroneum (ETN)</option>
+      </select>
+    </label>
+    <label class="block">
+      <span class="block mb-1 font-medium text-gray-300">Target Durasi (jam) — opsional</span>
+      <input id="hours" type="number" min="1" step="1" placeholder="mis: 24" class="w-full rounded-xl border border-gray-700 p-2.5 bg-gray-900 text-gray-100" />
+    </label>
+  </div>
+
+  <div class="flex flex-wrap gap-3 mt-4">
+    <button id="btnStart" class="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white">Mulai Mining</button>
+    <button id="btnStop" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white">Stop</button>
+    <button id="btnReset" class="px-4 py-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-white">Reset</button>
+    <button id="btnExport" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white">Export CSV</button>
+  </div>
+
+  <div class="mt-4 grid sm:grid-cols-3 gap-3 text-center">
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Total Koin</div>
+      <div id="totalCoin" class="text-2xl font-extrabold text-green-400">0.00000000</div>
+      <div id="coinLabel" class="text-xs opacity-80">—</div>
+    </div>
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Hashrate realtime</div>
+      <div id="rtHash" class="text-2xl font-bold">0 H/s</div>
+      <div class="text-sm opacity-80">± jitter 5%</div>
+    </div>
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Waktu berjalan</div>
+      <div id="elapsed" class="text-2xl font-bold">00:00:00</div>
+      <div id="targetLabel" class="text-sm opacity-80">Target: —</div>
+    </div>
+  </div>
+</section>
+
+<!-- Live Price & Estimation Card -->
+<section class="bg-gray-800 shadow rounded-2xl p-5">
+  <h3 class="text-lg font-semibold mb-2">Harga Live & Estimasi Pendapatan</h3>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Harga Saat Ini</div>
+      <div id="priceNow" class="text-xl font-bold">—</div>
+      <div id="priceNowIDR" class="text-xs opacity-80">—</div>
+    </div>
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Estimasi / Hari</div>
+      <div id="estDay" class="text-xl font-bold">—</div>
+      <div id="estDayIDR" class="text-xs opacity-80">—</div>
+    </div>
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Estimasi / Bulan</div>
+      <div id="estMonth" class="text-xl font-bold">—</div>
+      <div id="estMonthIDR" class="text-xs opacity-80">—</div>
+    </div>
+  </div>
+  <p class="text-xs opacity-60 mt-2">Harga diambil dari CoinGecko (USD & IDR). Estimasi, bukan jaminan hasil nyata.</p>
+</section>
+
+<!-- Chart Card -->
+<section class="bg-gray-800 shadow rounded-2xl p-5">
+  <h3 class="text-lg font-semibold mb-3">Grafik Realtime</h3>
+  <canvas id="liveChart" height="120"></canvas>
+  <p class="text-xs opacity-70 mt-2">Grafik menampilkan akumulasi koin (kiri) & hashrate (kanan) per detik.</p>
+</section>
+
+<!-- Info -->
+<section class="bg-gray-800 shadow rounded-2xl p-5">
+  <h3 class="text-lg font-semibold mb-2">Catatan & Disclaimer</h3>
+  <ul class="list-disc list-inside space-y-1 text-sm leading-relaxed text-gray-300">
+    <li>Tarif per H/s yang digunakan adalah <b>fiktif</b> untuk edukasi: sesuaikan pada variabel <code>rates</code>.</li>
+    <li>Mining di HP berisiko panas berlebih, degradasi baterai, dan hasil kecil. Lakukan dengan bijak.</li>
+  </ul>
+</section>
+
+  </main>  <footer class="text-center text-xs opacity-70 py-6">© 2025 Mining Crypto</footer>  <!-- ======= SCRIPTS ======= -->  <script>
+    // ====== Theme toggle ======
+    const themeBtn = document.getElementById('themeToggle');
+    function applyThemeToChart(chart) {
+      if (!chart) return;
+      const isDark = document.documentElement.classList.contains('dark');
+      const color = isDark ? '#e5e7eb' : '#111827';
+      chart.options.scales.x.ticks.color = color;
+      chart.options.scales.y.ticks.color = color;
+      chart.options.scales.y1.ticks.color = color;
+      chart.options.plugins.legend.labels.color = color;
+      chart.update('none');
+    }
+    themeBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      themeBtn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+      applyThemeToChart(chart);
+    });
+
+    // ====== Simulasi state ======
+    let interval = null;
+    let seconds = 0;
+    let total = 0;
+    let currentHash = 0;
+    let selectedCoin = 'BTC';
+    let ratePerSecond = 0;
+
+    const elTotal = document.getElementById('totalCoin');
+    const elCoinLabel = document.getElementById('coinLabel');
+    const elHash = document.getElementById('rtHash');
+    const elElapsed = document.getElementById('elapsed');
+    const elTarget = document.getElementById('targetLabel');
+
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    const btnReset = document.getElementById('btnReset');
+    const btnExport = document.getElementById('btnExport');
+
+    const inputHashrate = document.getElementById('hashrate');
+    const inputCoin = document.getElementById('coin');
+    const inputHours = document.getElementById('hours');
+
+    // Tarif simulasi (fiktif) per H/s per jam — silakan sesuaikan
+    const rates = { BTC: 0.000000005, ETH: 0.0000001, ETN: 0.0005 };
+    const icons = { BTC: '₿', ETH: 'Ξ', ETN: 'Ⓔ' };
+
+    // ====== CoinGecko live price ======
+    const COINGECKO_IDS = { BTC: 'bitcoin', ETH: 'ethereum', ETN: 'electroneum' };
+    let livePrices = { BTC: {usd: null, idr: null}, ETH: {usd: null, idr: null}, ETN: {usd: null, idr: null} };
+
+    async function fetchPrices(){
+      try {
+        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,electroneum&vs_currencies=usd,idr';
+        const res = await fetch(url, { headers: { 'accept': 'application/json' } });
+        if(!res.ok) throw new Error('Gagal mengambil harga');
+        const data = await res.json();
+        livePrices.BTC = { usd: data.bitcoin.usd, idr: data.bitcoin.idr };
+        livePrices.ETH = { usd: data.ethereum.usd, idr: data.ethereum.idr };
+        livePrices.ETN = { usd: data.electroneum?.usd ?? null, idr: data.electroneum?.idr ?? null };
+        updatePriceUI();
+      } catch(e){
+        console.warn('Price fetch error:', e.message);
+      }
+    }
+
+    function n(x){ return new Intl.NumberFormat('id-ID').format(x); }
+    function moneyIDR(x){ return new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 }).format(x); }
+    function moneyUSD(x){ return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(x); }
+
+    const priceNow = document.getElementById('priceNow');
+    const priceNowIDR = document.getElementById('priceNowIDR');
+    const estDay = document.getElementById('estDay');
+    const estDayIDR = document.getElementById('estDayIDR');
+    const estMonth = document.getElementById('estMonth');
+    const estMonthIDR = document.getElementById('estMonthIDR');
+
+    function updatePriceUI(){
+      const coin = selectedCoin;
+      const p = livePrices[coin];
+      if(!p || p.usd==null){ priceNow.textContent='—'; priceNowIDR.textContent='—'; return; }
+      priceNow.textContent = `${moneyUSD(p.usd)} / ${coin}`;
+      priceNowIDR.textContent = `${moneyIDR(p.idr)} / ${coin}`;
+      // Update estimasi berdasarkan rate saat ini
+      updateEstimation();
+    }
+
+    function updateEstimation(){
+      const coin = selectedCoin;
+      const p = livePrices[coin];
+      if(!p || p.usd==null) { estDay.textContent='—'; estMonth.textContent='—'; estDayIDR.textContent='—'; estMonthIDR.textContent='—'; return; }
+      // coin per detik saat ini
+      const cps = ratePerSecond; // dari start()
+      const perHour = cps * 3600;
+      const perDay = perHour * 24;
+      const perMonth = perDay * 30;
+      estDay.textContent = `${perDay.toFixed(8)} ${coin} (${moneyUSD(perDay * p.usd)})`;
+      estDayIDR.textContent = `${moneyIDR(perDay * p.idr)}`;
+      estMonth.textContent = `${perMonth.toFixed(8)} ${coin} (${moneyUSD(perMonth * p.usd)})`;
+      estMonthIDR.textContent = `${moneyIDR(perMonth * p.idr)}`;
+    }
+
+    // ====== Chart setup ======
+    const ctx = document.getElementById('liveChart').getContext('2d');
+    const isDarkInit = document.documentElement.classList.contains('dark');
+    const textColor = isDarkInit ? '#e5e7eb' : '#111827';
+
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Total Koin', data: [], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.18)', fill: true, tension: .25, yAxisID: 'y' },
+          { label: 'Hashrate (H/s)', data: [], borderColor: '#38bdf8', pointRadius: 0, tension: .15, yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        plugins: { legend: { labels: { color: textColor } }, tooltip: { mode: 'index', intersect: false } },
+        scales: {
+          x: { ticks: { color: textColor } },
+          y: { position: 'left', ticks: { color: textColor }, title: { display: true, text: 'Koin', color: textColor } },
+          y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: textColor }, title: { display: true, text: 'H/s', color: textColor } }
+        }
+      }
+    });
+
+    // ====== Helpers ======
+    function fmtTime(sec){ const h=String(Math.floor(sec/3600)).padStart(2,'0'); const m=String(Math.floor((sec%3600)/60)).padStart(2,'0'); const s=String(sec%60).padStart(2,'0'); return `${h}:${m}:${s}`; }
+
+    function step(){
+      seconds += 1;
+      const base = Number(inputHashrate.value || 0);
+      const jitter = base * (1 + (Math.random() * 0.1 - 0.05));
+      currentHash = Math.max(0, jitter);
+      total += ratePerSecond; // akumulasi per detik (coin)
+
+      elTotal.textContent = total.toFixed(8);
+      elCoinLabel.textContent = `${icons[selectedCoin]} ${selectedCoin}`;
+      elHash.textContent = `${currentHash.toFixed(0)} H/s`;
+      elElapsed.textContent = fmtTime(seconds);
+
+      chart.data.labels.push(seconds);
+      chart.data.datasets[0].data.push(total);
+      chart.data.datasets[1].data.push(currentHash);
+      chart.update('none');
+
+      const targetSec = Number(inputHours.value || 0) * 3600;
+      if (targetSec > 0 && seconds >= targetSec) stop();
+    }
+
+    function start(){
+      const baseHash = Number(inputHashrate.value || 0);
+      if(!baseHash){ alert('Masukkan hashrate HP terlebih dahulu.'); return; }
+      selectedCoin = inputCoin.value;
+      ratePerSecond = baseHash * rates[selectedCoin] / 3600; // coin/detik
+      const target = Number(inputHours.value || 0);
+      elTarget.textContent = target ? `Target: ${target} jam` : 'Target: —';
+
+      updatePriceUI(); // refresh estimasi dengan ratePerSecond baru
+
+      if(!interval){ interval = setInterval(step, 1000); btnStart.disabled = true; btnStart.classList.add('opacity-60'); }
+    }
+
+    function stop(){ if(interval){ clearInterval(interval); interval=null; btnStart.disabled=false; btnStart.classList.remove('opacity-60'); } }
+
+    function reset(){
+      stop(); seconds=0; total=0; currentHash=0;
+      elTotal.textContent='0.00000000'; elHash.textContent='0 H/s'; elElapsed.textContent='00:00:00'; elCoinLabel.textContent='—'; elTarget.textContent='Target: —';
+      chart.data.labels=[]; chart.data.datasets[0].data=[]; chart.data.datasets[1].data=[]; chart.update('none');
+      updateEstimation();
+    }
+
+    function exportCSV(){
+      const rows = [['detik','total_koin','hashrate_hs']];
+      const len = chart.data.labels.length;
+      for(let i=0;i<len;i++){ rows.push([chart.data.labels[i], chart.data.datasets[0].data[i], chart.data.datasets[1].data[i]]); }
+      const csv = rows.map(r=>r.join(',')).join('
+');
+      const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='simulasi-mining.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    // Bind buttons
+    btnStart.addEventListener('click', start);
+    btnStop.addEventListener('click', stop);
+    btnReset.addEventListener('click', reset);
+    btnExport.addEventListener('click', exportCSV);
+
+    // Fetch price now + refresh tiap 60 detik
+    fetchPrices();
+    setInterval(fetchPrices, 60000);
+
+    // Apply theme on load
+    applyThemeToChart(chart);
+  </script></body>
+</html>
 <!DOCTYPE html>
 <html lang="id" class="dark">
 <head>
+  <!-- ======= BASIC SEO ======= -->
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Mining Crypto di HP — Simulasi & Panduan Lengkap</title>
-  <meta name="description" content="Simulasikan mining Bitcoin, Ethereum, atau Electroneum langsung di HP Anda. Dilengkapi kalkulator, grafik real-time, dan panduan aman menambang di smartphone.">
-  <meta name="keywords" content="mining crypto di hp, mining bitcoin hp, mining ethereum hp, simulasi mining, kalkulator mining, menambang di hp">
-  <meta name="author" content="Mining Crypto HP">
-  <meta name="theme-color" content="#4f46e5">
-
-  <link rel="icon" href="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=032" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mining Crypto di HP — Realtime + Estimasi Harga</title>
+  <meta name="description" content="Simulasi mining crypto di HP dengan grafik realtime, harga koin live dari CoinGecko, dan estimasi pendapatan otomatis per jam, hari, dan bulan." />
+  <meta name="keywords" content="mining crypto di hp, simulasi mining, kalkulator mining, bitcoin, ethereum, electroneum" />
+  <meta name="author" content="Mining Crypto HP" />
+  <meta name="theme-color" content="#111827" />  <!-- ======= ICONS (optional placeholders) ======= -->  <link rel="icon" href="/favicon.ico" />  <!-- ======= LIBS ======= -->  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { darkMode: 'class' }
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-sans transition-colors duration-500">
-
-  <!-- Header -->
-  <header class="bg-indigo-600 dark:bg-indigo-800 text-white p-6 text-center flex justify-between items-center">
-    <div>
-      <h1 class="text-3xl font-bold">Mining Crypto di HP</h1>
-      <p class="mt-1 text-lg">Simulasi & Panduan Lengkap Menambang di Smartphone</p>
-    </div>
-    <button id="themeToggle" class="bg-gray-800 dark:bg-gray-200 dark:text-gray-800 text-white px-3 py-2 rounded transition-colors duration-300">
-      🌙
-    </button>
-  </header>
-
-  <!-- Kalkulator + Live Mining -->
-  <section class="bg-white dark:bg-gray-800 p-6 max-w-4xl mx-auto shadow rounded-lg mt-6">
-    <h2 class="text-2xl font-semibold mb-4">Simulasi Mining di HP</h2>
-    <div class="space-y-4">
+  <script> tailwind.config = { darkMode: 'class' } </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  <style>
+    body{transition:background-color .3s,color .3s}
+  </style></head>
+<body class="bg-gray-900 text-gray-100 font-sans">
+  <!-- ======= HEADER ======= -->
+  <header class="bg-indigo-600/90 backdrop-blur text-white px-6 py-5">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
       <div>
-        <label class="block mb-1 font-semibold">Hashrate HP (H/s)</label>
-        <input type="number" id="hashrate" placeholder="Contoh: 500" class="w-full border dark:border-gray-700 rounded p-2 dark:bg-gray-900">
+        <h1 class="text-2xl sm:text-3xl font-bold">Mining Crypto di HP</h1>
+        <p class="text-sm sm:text-base opacity-90">Grafik realtime + estimasi pendapatan berbasis harga live</p>
       </div>
-      <div>
-        <label class="block mb-1 font-semibold">Jenis Koin</label>
-        <select id="coin" class="w-full border dark:border-gray-700 rounded p-2 dark:bg-gray-900">
-          <option value="BTC">₿ Bitcoin (BTC)</option>
-          <option value="ETH">Ξ Ethereum (ETH)</option>
-          <option value="ETN">Ⓔ Electroneum (ETN)</option>
-        </select>
-      </div>
-      <div class="flex gap-2">
-        <button onclick="startMining()" class="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded">Mulai Mining</button>
-        <button onclick="stopMining()" class="bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded">Stop</button>
-        <button onclick="resetMining()" class="bg-yellow-500 dark:bg-yellow-600 text-white px-4 py-2 rounded">Reset</button>
-      </div>
-      <div id="result" class="mt-4 p-3 bg-gray-100 dark:bg-gray-900 rounded text-lg font-bold">
-        0
-      </div>
-      <canvas id="miningChart" height="120"></canvas>
-      <button onclick="exportCSV()" class="mt-4 bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded">Export CSV</button>
+      <button id="themeToggle" class="rounded-2xl px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-lg">🌙</button>
     </div>
-  </section>
+  </header>  <!-- ======= MAIN ======= -->  <main class="max-w-5xl mx-auto p-6 grid gap-6"><!-- Controls Card -->
+<section class="bg-gray-800 shadow rounded-2xl p-5">
+  <h2 class="text-xl font-semibold mb-4">Mining</h2>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <label class="block">
+      <span class="block mb-1 font-medium text-gray-300">Hashrate HP (H/s)</span>
+      <input id="hashrate" type="number" min="1" step="1" placeholder="contoh: 500" class="w-full rounded-xl border border-gray-700 p-2.5 bg-gray-900 text-gray-100" />
+    </label>
+    <label class="block">
+      <span class="block mb-1 font-medium text-gray-300">Jenis Koin</span>
+      <select id="coin" class="w-full rounded-xl border border-gray-700 p-2.5 bg-gray-900 text-gray-100">
+        <option value="BTC">₿ Bitcoin (BTC)</option>
+        <option value="ETH">Ξ Ethereum (ETH)</option>
+        <option value="ETN">Ⓔ Electroneum (ETN)</option>
+      </select>
+    </label>
+    <label class="block">
+      <span class="block mb-1 font-medium text-gray-300">Target Durasi (jam) — opsional</span>
+      <input id="hours" type="number" min="1" step="1" placeholder="mis: 24" class="w-full rounded-xl border border-gray-700 p-2.5 bg-gray-900 text-gray-100" />
+    </label>
+  </div>
 
-  <!-- Footer -->
-  <footer class="bg-gray-900 dark:bg-black text-white p-6 text-center mt-8">
-    <p>© 2025 Mining Crypto HP — Semua Hak Dilindungi</p>
-    <p class="text-sm mt-2">Disclaimer: Mining di HP memiliki risiko, lakukan dengan bijak.</p>
-  </footer>
+  <div class="flex flex-wrap gap-3 mt-4">
+    <button id="btnStart" class="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white">Mulai Mining</button>
+    <button id="btnStop" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white">Stop</button>
+    <button id="btnReset" class="px-4 py-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-white">Reset</button>
+    <button id="btnExport" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white">Export CSV</button>
+  </div>
 
-  <script>
-    let miningInterval;
-    let totalCoin = 0;
-    let coinIcon = "";
-    let coinType = "";
-    let ratePerSecond = 0;
-    let timeElapsed = 0;
-    let chart;
-    let dataLog = [];
+  <div class="mt-4 grid sm:grid-cols-3 gap-3 text-center">
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Total Koin</div>
+      <div id="totalCoin" class="text-2xl font-extrabold text-green-400">0.00000000</div>
+      <div id="coinLabel" class="text-xs opacity-80">—</div>
+    </div>
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Hashrate realtime</div>
+      <div id="rtHash" class="text-2xl font-bold">0 H/s</div>
+      <div class="text-sm opacity-80">± jitter 5%</div>
+    </div>
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Waktu berjalan</div>
+      <div id="elapsed" class="text-2xl font-bold">00:00:00</div>
+      <div id="targetLabel" class="text-sm opacity-80">Target: —</div>
+    </div>
+  </div>
+</section>
 
-    // Dark mode toggle
-    document.getElementById("themeToggle").addEventListener("click", () => {
-      document.documentElement.classList.toggle("dark");
-      document.getElementById("themeToggle").textContent =
-        document.documentElement.classList.contains("dark") ? "☀️" : "🌙";
+<!-- Live Price & Estimation Card -->
+<section class="bg-gray-800 shadow rounded-2xl p-5">
+  <h3 class="text-lg font-semibold mb-2">Harga Live & Estimasi Pendapatan</h3>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Harga Saat Ini</div>
+      <div id="priceNow" class="text-xl font-bold">—</div>
+      <div id="priceNowIDR" class="text-xs opacity-80">—</div>
+    </div>
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Estimasi / Hari</div>
+      <div id="estDay" class="text-xl font-bold">—</div>
+      <div id="estDayIDR" class="text-xs opacity-80">—</div>
+    </div>
+    <div class="bg-gray-900 rounded-xl p-3">
+      <div class="text-sm opacity-70">Estimasi / Bulan</div>
+      <div id="estMonth" class="text-xl font-bold">—</div>
+      <div id="estMonthIDR" class="text-xs opacity-80">—</div>
+    </div>
+  </div>
+  <p class="text-xs opacity-60 mt-2">Harga diambil dari CoinGecko (USD & IDR). Estimasi bersifat simulasi, bukan jaminan hasil nyata.</p>
+</section>
+
+<!-- Chart Card -->
+<section class="bg-gray-800 shadow rounded-2xl p-5">
+  <h3 class="text-lg font-semibold mb-3">Grafik Realtime</h3>
+  <canvas id="liveChart" height="120"></canvas>
+  <p class="text-xs opacity-70 mt-2">Grafik menampilkan akumulasi koin (kiri) & hashrate (kanan) per detik.</p>
+</section>
+
+<!-- Info -->
+<section class="bg-gray-800 shadow rounded-2xl p-5">
+  <h3 class="text-lg font-semibold mb-2">Catatan & Disclaimer</h3>
+  <ul class="list-disc list-inside space-y-1 text-sm leading-relaxed text-gray-300">
+    <li>Tarif per H/s yang digunakan adalah <b>fiktif</b> untuk edukasi: sesuaikan pada variabel <code>rates</code>.</li>
+    <li>Mining di HP berisiko panas berlebih, degradasi baterai, dan hasil kecil. Lakukan dengan bijak.</li>
+  </ul>
+</section>
+
+  </main>  <footer class="text-center text-xs opacity-70 py-6">© 2025 Mining Crypto HP — Demo Edukasi</footer>  <!-- ======= SCRIPTS ======= -->  <script>
+    // ====== Theme toggle ======
+    const themeBtn = document.getElementById('themeToggle');
+    function applyThemeToChart(chart) {
+      if (!chart) return;
+      const isDark = document.documentElement.classList.contains('dark');
+      const color = isDark ? '#e5e7eb' : '#111827';
+      chart.options.scales.x.ticks.color = color;
+      chart.options.scales.y.ticks.color = color;
+      chart.options.scales.y1.ticks.color = color;
+      chart.options.plugins.legend.labels.color = color;
+      chart.update('none');
+    }
+    themeBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      themeBtn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+      applyThemeToChart(chart);
     });
 
-    // Chart init
-    function initChart() {
-      const ctx = document.getElementById("miningChart").getContext("2d");
-      chart = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: [],
-          datasets: [{
-            label: "Koin Terkumpul",
-            data: [],
-            borderColor: "#4f46e5",
-            backgroundColor: "rgba(79,70,229,0.1)",
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: { title: { display: true, text: "Waktu (detik)" } },
-            y: { title: { display: true, text: "Total Koin" } }
-          }
+    // ====== Simulasi state ======
+    let interval = null;
+    let seconds = 0;
+    let total = 0;
+    let currentHash = 0;
+    let selectedCoin = 'BTC';
+    let ratePerSecond = 0;
+
+    const elTotal = document.getElementById('totalCoin');
+    const elCoinLabel = document.getElementById('coinLabel');
+    const elHash = document.getElementById('rtHash');
+    const elElapsed = document.getElementById('elapsed');
+    const elTarget = document.getElementById('targetLabel');
+
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    const btnReset = document.getElementById('btnReset');
+    const btnExport = document.getElementById('btnExport');
+
+    const inputHashrate = document.getElementById('hashrate');
+    const inputCoin = document.getElementById('coin');
+    const inputHours = document.getElementById('hours');
+
+    // Tarif simulasi (fiktif) per H/s per jam — silakan sesuaikan
+    const rates = { BTC: 0.000000005, ETH: 0.0000001, ETN: 0.0005 };
+    const icons = { BTC: '₿', ETH: 'Ξ', ETN: 'Ⓔ' };
+
+    // ====== CoinGecko live price ======
+    const COINGECKO_IDS = { BTC: 'bitcoin', ETH: 'ethereum', ETN: 'electroneum' };
+    let livePrices = { BTC: {usd: null, idr: null}, ETH: {usd: null, idr: null}, ETN: {usd: null, idr: null} };
+
+    async function fetchPrices(){
+      try {
+        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,electroneum&vs_currencies=usd,idr';
+        const res = await fetch(url, { headers: { 'accept': 'application/json' } });
+        if(!res.ok) throw new Error('Gagal mengambil harga');
+        const data = await res.json();
+        livePrices.BTC = { usd: data.bitcoin.usd, idr: data.bitcoin.idr };
+        livePrices.ETH = { usd: data.ethereum.usd, idr: data.ethereum.idr };
+        livePrices.ETN = { usd: data.electroneum?.usd ?? null, idr: data.electroneum?.idr ?? null };
+        updatePriceUI();
+      } catch(e){
+        console.warn('Price fetch error:', e.message);
+      }
+    }
+
+    function n(x){ return new Intl.NumberFormat('id-ID').format(x); }
+    function moneyIDR(x){ return new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 }).format(x); }
+    function moneyUSD(x){ return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(x); }
+
+    const priceNow = document.getElementById('priceNow');
+    const priceNowIDR = document.getElementById('priceNowIDR');
+    const estDay = document.getElementById('estDay');
+    const estDayIDR = document.getElementById('estDayIDR');
+    const estMonth = document.getElementById('estMonth');
+    const estMonthIDR = document.getElementById('estMonthIDR');
+
+    function updatePriceUI(){
+      const coin = selectedCoin;
+      const p = livePrices[coin];
+      if(!p || p.usd==null){ priceNow.textContent='—'; priceNowIDR.textContent='—'; return; }
+      priceNow.textContent = `${moneyUSD(p.usd)} / ${coin}`;
+      priceNowIDR.textContent = `${moneyIDR(p.idr)} / ${coin}`;
+      // Update estimasi berdasarkan rate saat ini
+      updateEstimation();
+    }
+
+    function updateEstimation(){
+      const coin = selectedCoin;
+      const p = livePrices[coin];
+      if(!p || p.usd==null) { estDay.textContent='—'; estMonth.textContent='—'; estDayIDR.textContent='—'; estMonthIDR.textContent='—'; return; }
+      // coin per detik saat ini
+      const cps = ratePerSecond; // dari start()
+      const perHour = cps * 3600;
+      const perDay = perHour * 24;
+      const perMonth = perDay * 30;
+      estDay.textContent = `${perDay.toFixed(8)} ${coin} (${moneyUSD(perDay * p.usd)})`;
+      estDayIDR.textContent = `${moneyIDR(perDay * p.idr)}`;
+      estMonth.textContent = `${perMonth.toFixed(8)} ${coin} (${moneyUSD(perMonth * p.usd)})`;
+      estMonthIDR.textContent = `${moneyIDR(perMonth * p.idr)}`;
+    }
+
+    // ====== Chart setup ======
+    const ctx = document.getElementById('liveChart').getContext('2d');
+    const isDarkInit = document.documentElement.classList.contains('dark');
+    const textColor = isDarkInit ? '#e5e7eb' : '#111827';
+
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Total Koin', data: [], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.18)', fill: true, tension: .25, yAxisID: 'y' },
+          { label: 'Hashrate (H/s)', data: [], borderColor: '#38bdf8', pointRadius: 0, tension: .15, yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        plugins: { legend: { labels: { color: textColor } }, tooltip: { mode: 'index', intersect: false } },
+        scales: {
+          x: { ticks: { color: textColor } },
+          y: { position: 'left', ticks: { color: textColor }, title: { display: true, text: 'Koin', color: textColor } },
+          y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: textColor }, title: { display: true, text: 'H/s', color: textColor } }
         }
-      });
-    }
-
-    // Start Mining
-    function startMining() {
-      let hashrate = parseFloat(document.getElementById("hashrate").value);
-      coinType = document.getElementById("coin").value;
-
-      if (!hashrate) {
-        document.getElementById("result").innerHTML = "<span class='text-red-500'>Masukkan hashrate HP</span>";
-        return;
       }
+    });
 
-      let rates = { BTC: 0.000000005, ETH: 0.0000001, ETN: 0.0005 };
-      let icons = { BTC: "₿", ETH: "Ξ", ETN: "Ⓔ" };
+    // ====== Helpers ======
+    function fmtTime(sec){ const h=String(Math.floor(sec/3600)).padStart(2,'0'); const m=String(Math.floor((sec%3600)/60)).padStart(2,'0'); const s=String(sec%60).padStart(2,'0'); return `${h}:${m}:${s}`; }
 
-      ratePerSecond = hashrate * rates[coinType] / 3600;
-      coinIcon = icons[coinType];
+    function step(){
+      seconds += 1;
+      const base = Number(inputHashrate.value || 0);
+      const jitter = base * (1 + (Math.random() * 0.1 - 0.05));
+      currentHash = Math.max(0, jitter);
+      total += ratePerSecond; // akumulasi per detik (coin)
 
-      if (!chart) initChart();
-      if (miningInterval) clearInterval(miningInterval);
+      elTotal.textContent = total.toFixed(8);
+      elCoinLabel.textContent = `${icons[selectedCoin]} ${selectedCoin}`;
+      elHash.textContent = `${currentHash.toFixed(0)} H/s`;
+      elElapsed.textContent = fmtTime(seconds);
 
-      miningInterval = setInterval(() => {
-        timeElapsed++;
-        totalCoin += ratePerSecond;
-        document.getElementById("result").textContent = `${totalCoin.toFixed(8)} ${coinIcon} ${coinType}`;
-        
-        chart.data.labels.push(timeElapsed);
-        chart.data.datasets[0].data.push(totalCoin);
-        chart.update();
+      chart.data.labels.push(seconds);
+      chart.data.datasets[0].data.push(total);
+      chart.data.datasets[1].data.push(currentHash);
+      chart.update('none');
 
-        dataLog.push({ detik: timeElapsed, total: totalCoin.toFixed(8) });
-      }, 1000);
+      const targetSec = Number(inputHours.value || 0) * 3600;
+      if (targetSec > 0 && seconds >= targetSec) stop();
     }
 
-    // Stop Mining
-    function stopMining() {
-      clearInterval(miningInterval);
-      miningInterval = null;
+    function start(){
+      const baseHash = Number(inputHashrate.value || 0);
+      if(!baseHash){ alert('Masukkan hashrate HP terlebih dahulu.'); return; }
+      selectedCoin = inputCoin.value;
+      ratePerSecond = baseHash * rates[selectedCoin] / 3600; // coin/detik
+      const target = Number(inputHours.value || 0);
+      elTarget.textContent = target ? `Target: ${target} jam` : 'Target: —';
+
+      updatePriceUI(); // refresh estimasi dengan ratePerSecond baru
+
+      if(!interval){ interval = setInterval(step, 1000); btnStart.disabled = true; btnStart.classList.add('opacity-60'); }
     }
 
-    // Reset Mining
-    function resetMining() {
-      stopMining();
-      totalCoin = 0;
-      timeElapsed = 0;
-      dataLog = [];
-      if (chart) {
-        chart.data.labels = [];
-        chart.data.datasets[0].data = [];
-        chart.update();
-      }
-      document.getElementById("result").textContent = "0";
+    function stop(){ if(interval){ clearInterval(interval); interval=null; btnStart.disabled=false; btnStart.classList.remove('opacity-60'); } }
+
+    function reset(){
+      stop(); seconds=0; total=0; currentHash=0;
+      elTotal.textContent='0.00000000'; elHash.textContent='0 H/s'; elElapsed.textContent='00:00:00'; elCoinLabel.textContent='—'; elTarget.textContent='Target: —';
+      chart.data.labels=[]; chart.data.datasets[0].data=[]; chart.data.datasets[1].data=[]; chart.update('none');
+      updateEstimation();
     }
 
-    // Export CSV
-    function exportCSV() {
-      let csvContent = "data:text/csv;charset=utf-8,Detik,Total Koin\n";
-      dataLog.forEach(row => {
-        csvContent += `${row.detik},${row.total}\n`;
-      });
-      const link = document.createElement("a");
-      link.setAttribute("href", encodeURI(csvContent));
-      link.setAttribute("download", "hasil-mining.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    function exportCSV(){
+      const rows = [['detik','total_koin','hashrate_hs']];
+      const len = chart.data.labels.length;
+      for(let i=0;i<len;i++){ rows.push([chart.data.labels[i], chart.data.datasets[0].data[i], chart.data.datasets[1].data[i]]); }
+      const csv = rows.map(r=>r.join(',')).join('
+');
+      const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='simulasi-mining.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     }
-  </script>
-</body>
+
+    // Bind buttons
+    btnStart.addEventListener('click', start);
+    btnStop.addEventListener('click', stop);
+    btnReset.addEventListener('click', reset);
+    btnExport.addEventListener('click', exportCSV);
+
+    // Fetch price now + refresh tiap 60 detik
+    fetchPrices();
+    setInterval(fetchPrices, 60000);
+
+    // Apply theme on load
+    applyThemeToChart(chart);
+  </script></body>
 </html>
