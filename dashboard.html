@@ -1,0 +1,189 @@
+<!-- dashboard.html
+Halaman dashboard mining. Ganti same firebaseConfig sebagai di index.html.
+-->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard - Crypto Mining</title>
+  <meta name="description" content="Dashboard mining realtime untuk user terverifikasi." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen" id="body">
+  <header class="bg-gray-800 p-4 flex items-center justify-between">
+    <div>
+      <h1 class="text-lg font-bold">Crypto Mining Dashboard</h1>
+      <p class="text-xs text-gray-400">Simulasi mining realtime & estimasi pendapatan</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="themeBtn" class="px-3 py-1 rounded bg-yellow-400 text-black">🌙/☀️</button>
+      <button id="logoutBtn" class="px-3 py-1 rounded bg-red-500">Logout</button>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto p-6 grid gap-6">
+    <section class="bg-gray-800 rounded-xl p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm text-gray-400">Logged in as</div>
+          <div id="userEmail" class="font-semibold">—</div>
+        </div>
+        <div class="text-right">
+          <div class="text-sm text-gray-400">Status</div>
+          <div id="loginStatus" class="font-semibold text-green-400">Verified</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-gray-800 rounded-xl p-4">
+      <h2 class="font-semibold mb-3">Simulasi Mining</h2>
+      <div class="grid sm:grid-cols-3 gap-3">
+        <label>
+          <div class="text-xs text-gray-400">Hashrate (H/s)</div>
+          <input id="hashrate" type="number" class="mt-1 w-full p-2 rounded bg-gray-900 text-white" placeholder="contoh: 500" />
+        </label>
+        <label>
+          <div class="text-xs text-gray-400">Pilih Koin</div>
+          <select id="coin" class="mt-1 w-full p-2 rounded bg-gray-900 text-white">
+            <option value="BTC">₿ Bitcoin (BTC)</option>
+            <option value="ETH">Ξ Ethereum (ETH)</option>
+            <option value="ETN">Ⓔ Electroneum (ETN)</option>
+          </select>
+        </label>
+        <label>
+          <div class="text-xs text-gray-400">Target durasi (jam)</div>
+          <input id="hours" type="number" class="mt-1 w-full p-2 rounded bg-gray-900 text-white" placeholder="opsional" />
+        </label>
+      </div>
+
+      <div class="flex gap-3 mt-4">
+        <button id="btnStart" class="px-4 py-2 rounded bg-green-600">Mulai</button>
+        <button id="btnStop" class="px-4 py-2 rounded bg-red-600">Stop</button>
+        <button id="btnReset" class="px-4 py-2 rounded bg-yellow-600">Reset</button>
+      </div>
+
+      <div class="mt-4 grid sm:grid-cols-3 gap-3 text-center">
+        <div class="p-3 bg-gray-900 rounded">
+          <div class="text-xs text-gray-400">Total Koin</div>
+          <div id="totalCoin" class="font-bold text-green-400">0.00000000</div>
+        </div>
+        <div class="p-3 bg-gray-900 rounded">
+          <div class="text-xs text-gray-400">Hashrate realtime</div>
+          <div id="rtHash" class="font-semibold">0 H/s</div>
+        </div>
+        <div class="p-3 bg-gray-900 rounded">
+          <div class="text-xs text-gray-400">Waktu berjalan</div>
+          <div id="elapsed" class="font-semibold">00:00:00</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-gray-800 rounded-xl p-4">
+      <h3 class="font-semibold mb-2">Harga live & estimasi</h3>
+      <div class="grid sm:grid-cols-3 gap-3">
+        <div class="p-3 bg-gray-900 rounded">
+          <div class="text-xs text-gray-400">Harga sekarang</div>
+          <div id="priceNow" class="font-semibold">—</div>
+        </div>
+        <div class="p-3 bg-gray-900 rounded">
+          <div class="text-xs text-gray-400">Estimasi / hari</div>
+          <div id="estDay" class="font-semibold">—</div>
+        </div>
+        <div class="p-3 bg-gray-900 rounded">
+          <div class="text-xs text-gray-400">Estimasi / bulan</div>
+          <div id="estMonth" class="font-semibold">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-gray-800 rounded-xl p-4">
+      <h3 class="font-semibold mb-2">Grafik realtime</h3>
+      <canvas id="chart" height="120" class="bg-gray-900 rounded w-full"></canvas>
+    </section>
+  </main>
+
+  <footer class="text-center text-xs text-gray-400 py-4">© 2025 Crypto Mining</footer>
+
+  <script>
+    // ====== Ganti firebaseConfig ======
+    const firebaseConfig = {
+  apiKey: "AIzaSyCc4ix1uGCaE-rsyM6Lg3jo6SzVjbXYCmw",
+  authDomain: "crypto-mining-d3811.firebaseapp.com",
+  projectId: "crypto-mining-d3811",
+  storageBucket: "crypto-mining-d3811.firebasestorage.app",
+  messagingSenderId: "1068882455445",
+  appId: "1:1068882455445:web:362538bf3bb36c598f649c"
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // UI refs
+    const userEmailEl = document.getElementById('userEmail');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const themeBtn = document.getElementById('themeBtn');
+
+    // mining refs
+    const btnStart = document.getElementById('btnStart');
+    const btnStop  = document.getElementById('btnStop');
+    const btnReset = document.getElementById('btnReset');
+    const inputHash = document.getElementById('hashrate');
+    const inputCoin = document.getElementById('coin');
+    const inputHours= document.getElementById('hours');
+
+    const elTotal = document.getElementById('totalCoin');
+    const elRtHash = document.getElementById('rtHash');
+    const elElapsed = document.getElementById('elapsed');
+    const elPriceNow = document.getElementById('priceNow');
+    const elEstDay = document.getElementById('estDay');
+    const elEstMonth = document.getElementById('estMonth');
+
+    // state
+    let interval = null, seconds = 0, total = 0, currentHash = 0, ratePerSec = 0, selectedCoin = 'BTC';
+    const rates = { BTC: 0.000000005, ETH: 0.0000001, ETN: 0.0005 };
+
+    // chart
+    const ctx = document.getElementById('chart').getContext('2d');
+    const chart = new Chart(ctx, { type:'line', data:{ labels:[], datasets:[{ label:'Total Koin', data:[], borderColor:'#22c55e', fill:true }] }, options:{ animation:false, responsive:true } });
+
+    // Auth check
+    auth.onAuthStateChanged(u => {
+      if(u && u.emailVerified){ userEmailEl.textContent = u.email; } else { window.location.href = 'index.html'; }
+    });
+
+    logoutBtn.addEventListener('click', () => auth.signOut().then(()=>window.location.href='index.html'));
+
+    // price fetch
+    async function fetchPrice(){
+      try{
+        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,electroneum&vs_currencies=usd';
+        const r = await fetch(url); const j = await r.json();
+        const p = selectedCoin === 'BTC' ? j.bitcoin.usd : selectedCoin === 'ETH' ? j.ethereum.usd : j.electroneum?.usd;
+        elPriceNow.textContent = p ? '$' + p.toLocaleString() : '—';
+      }catch(e){ elPriceNow.textContent='—'; }
+    }
+
+    // step
+    function step(){ seconds++; const base = Number(inputHash.value||0); const jitter = base*(1+(Math.random()*0.1-0.05)); currentHash = Math.max(0,jitter); total += ratePerSec; elTotal.textContent = total.toFixed(8); elRtHash.textContent = Math.round(currentHash)+' H/s'; elElapsed.textContent = new Date(seconds*1000).toISOString().substr(11,8); chart.data.labels.push(seconds); chart.data.datasets[0].data.push(total); chart.update('none'); }
+
+    function start(){ const base = Number(inputHash.value||0); if(!base){ alert('Masukkan hashrate'); return; } selectedCoin = inputCoin.value; ratePerSec = base * (rates[selectedCoin]||0) / 3600; fetchPrice(); updateEstim(); if(!interval){ interval = setInterval(step,1000); } }
+    function stop(){ if(interval){ clearInterval(interval); interval=null; } }
+    function reset(){ stop(); seconds=0; total=0; currentHash=0; elTotal.textContent='0.00000000'; elRtHash.textContent='0 H/s'; elElapsed.textContent='00:00:00'; chart.data.labels=[]; chart.data.datasets[0].data=[]; chart.update(); }
+
+    function updateEstim(){ const perDay = ratePerSec*86400; const perMonth = perDay*30; elEstDay.textContent = perDay.toFixed(8)+' '+selectedCoin; elEstMonth.textContent = perMonth.toFixed(8)+' '+selectedCoin; }
+
+    btnStart.addEventListener('click', start); btnStop.addEventListener('click', stop); btnReset.addEventListener('click', reset);
+    inputHash.addEventListener('input', ()=>{ const base=Number(inputHash.value||0); ratePerSec = base*(rates[selectedCoin]||0)/3600; updateEstim(); });
+    inputCoin.addEventListener('change', ()=>{ selectedCoin = inputCoin.value; fetchPrice(); updateEstim(); });
+
+    themeBtn.addEventListener('click', ()=>{ const body = document.getElementById('body'); if(body.classList.contains('bg-gray-900')){ body.className='bg-white text-black min-h-screen'; } else { body.className='bg-gray-900 text-gray-100 min-h-screen'; } });
+
+    // initial
+    fetchPrice(); setInterval(fetchPrice,60000);
+  </script>
+</body>
+</html>
