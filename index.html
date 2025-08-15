@@ -1,6 +1,3 @@
-<!-- index.html
-Halaman login & pendaftaran (TailwindCSS). Ganti firebaseConfig sesuai projectmu.
--->
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -9,9 +6,6 @@ Halaman login & pendaftaran (TailwindCSS). Ganti firebaseConfig sesuai projectmu
   <title>Crypto Mining - Login / Daftar</title>
   <meta name="description" content="Login dan daftar pengguna untuk Crypto Mining (Email + Verifikasi)." />
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase (namespaced) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center" id="body">
   <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-lg">
@@ -21,7 +15,7 @@ Halaman login & pendaftaran (TailwindCSS). Ganti firebaseConfig sesuai projectmu
       <button id="themeBtn" class="bg-yellow-400 text-black px-3 py-1 rounded">🌙/☀️</button>
     </div>
 
-    <form id="auth-form" class="space-y-4">
+    <form id="auth-form" class="space-y-4" onsubmit="return false;">
       <input id="email" type="email" placeholder="Email" required class="w-full p-3 rounded bg-gray-700 text-white" />
       <input id="password" type="password" placeholder="Password (min 6)" required class="w-full p-3 rounded bg-gray-700 text-white" />
 
@@ -35,20 +29,30 @@ Halaman login & pendaftaran (TailwindCSS). Ganti firebaseConfig sesuai projectmu
     <p class="mt-4 text-xs text-gray-400">Catatan: Setelah daftar, cek email untuk verifikasi. Hanya user terverifikasi yang dapat login.</p>
   </div>
 
-  <script>
-    // ====== Ganti dengan firebaseConfig milikmu ======
-    const firebaseConfig = {
-  apiKey: "AIzaSyCc4ix1uGCaE-rsyM6Lg3jo6SzVjbXYCmw",
-  authDomain: "crypto-mining-d3811.firebaseapp.com",
-  projectId: "crypto-mining-d3811",
-  storageBucket: "crypto-mining-d3811.firebasestorage.app",
-  messagingSenderId: "1068882455445",
-  appId: "1:1068882455445:web:362538bf3bb36c598f649c"
-};
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      sendEmailVerification, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // Inisialisasi Firebase (namespaced)
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    // ====== Firebase Config ======
+    const firebaseConfig = {
+      apiKey: "AIzaSyCc4ix1uGCaE-rsyM6Lg3jo6SzVjbXYCmw",
+      authDomain: "crypto-mining-d3811.firebaseapp.com",
+      projectId: "crypto-mining-d3811",
+      storageBucket: "crypto-mining-d3811.firebasestorage.app",
+      messagingSenderId: "1068882455445",
+      appId: "1:1068882455445:web:362538bf3bb36c598f649c"
+    };
+
+    // Init
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
     // DOM
     const emailEl = document.getElementById('email');
@@ -58,14 +62,21 @@ Halaman login & pendaftaran (TailwindCSS). Ganti firebaseConfig sesuai projectmu
     const btnReg   = document.getElementById('btnRegister');
     const themeBtn = document.getElementById('themeBtn');
 
-    // dark/light theme toggle (local only)
+    // Theme toggle
     let dark = true;
     themeBtn.addEventListener('click', () => {
       dark = !dark;
-      document.getElementById('body').className = dark ? 'bg-gray-900 text-white min-h-screen flex items-center justify-center' : 'bg-white text-black min-h-screen flex items-center justify-center';
+      document.getElementById('body').className = dark 
+        ? 'bg-gray-900 text-white min-h-screen flex items-center justify-center' 
+        : 'bg-white text-black min-h-screen flex items-center justify-center';
     });
 
-    function show(msg, color='red'){ msgEl.textContent = msg; msgEl.className = color==='red' ? 'mt-4 text-center text-sm text-red-400' : 'mt-4 text-center text-sm text-green-400'; }
+    function show(msg, color='red'){ 
+      msgEl.textContent = msg; 
+      msgEl.className = color==='red' 
+        ? 'mt-4 text-center text-sm text-red-400' 
+        : 'mt-4 text-center text-sm text-green-400'; 
+    }
 
     // Register
     btnReg.addEventListener('click', async () => {
@@ -73,10 +84,10 @@ Halaman login & pendaftaran (TailwindCSS). Ganti firebaseConfig sesuai projectmu
       const pass = passEl.value;
       if(!email || pass.length < 6) return show('Masukkan email valid dan password minimal 6 karakter.');
       try{
-        const userCred = await auth.createUserWithEmailAndPassword(email, pass);
-        await userCred.user.sendEmailVerification();
+        const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+        await sendEmailVerification(userCred.user);
         show('Pendaftaran berhasil — cek email untuk verifikasi.', 'green');
-        await auth.signOut();
+        await signOut(auth);
       }catch(e){ show(e.message); }
     });
 
@@ -86,21 +97,21 @@ Halaman login & pendaftaran (TailwindCSS). Ganti firebaseConfig sesuai projectmu
       const pass = passEl.value;
       if(!email || !pass) return show('Isi email & password.');
       try{
-        const userCred = await auth.signInWithEmailAndPassword(email, pass);
-        const user = userCred.user;
-        if(user.emailVerified){
-          // redirect to dashboard
+        const userCred = await signInWithEmailAndPassword(auth, email, pass);
+        if(userCred.user.emailVerified){
           window.location.href = 'dashboard.html';
         } else {
-          show('Email belum diverifikasi. Cek inbox.', 'red');
-          await auth.signOut();
+          show('Email belum diverifikasi. Cek inbox.');
+          await signOut(auth);
         }
       }catch(e){ show(e.message); }
     });
 
-    // auto-redirect jika sudah login & verified
-    auth.onAuthStateChanged(u => {
-      if(u && u.emailVerified){ window.location.href = 'dashboard.html'; }
+    // Auto redirect jika sudah login & verified
+    onAuthStateChanged(auth, (u) => {
+      if(u && u.emailVerified){ 
+        window.location.href = 'dashboard.html'; 
+      }
     });
   </script>
 </body>
