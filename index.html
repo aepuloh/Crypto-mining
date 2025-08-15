@@ -1,352 +1,107 @@
+<!-- index.html
+Halaman login & pendaftaran (TailwindCSS). Ganti firebaseConfig sesuai projectmu.
+-->
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mining Crypto di HP — Realtime & Estimasi</title>
-  <meta name="description" content="Simulasi mining crypto di HP dengan grafik realtime, harga live dari CoinGecko, dan estimasi pendapatan per jam/hari/bulan. Dark mode."/>
-  <meta name="theme-color" content="#0f172a" />
-
-  <!-- Tailwind + Chart.js -->
+  <title>Crypto Mining - Login / Daftar</title>
+  <meta name="description" content="Login dan daftar pengguna untuk Crypto Mining (Email + Verifikasi)." />
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: 'class' }</script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    body { transition: background-color .25s, color .25s; }
-    /* smaller canvas on phones */
-    @media (max-width:420px){ canvas { max-height:200px!important } }
-  </style>
+  <!-- Firebase (namespaced) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center" id="body">
+  <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-lg">
+    <h1 class="text-2xl font-bold text-center mb-4">Crypto Mining</h1>
 
-  <!-- Header -->
-  <header class="bg-indigo-600/90 p-5">
-    <div class="max-w-4xl mx-auto flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold">Mining Crypto di HP</h1>
-        <p class="text-sm opacity-80">Grafik realtime • Harga live • Estimasi pendapatan</p>
-      </div>
-      <button id="themeToggle" class="rounded-xl px-3 py-2 bg-white/20 hover:bg-white/30">🌙</button>
+    <div class="flex justify-end mb-4">
+      <button id="themeBtn" class="bg-yellow-400 text-black px-3 py-1 rounded">🌙/☀️</button>
     </div>
-  </header>
 
-  <main class="max-w-4xl mx-auto p-4 grid gap-6">
+    <form id="auth-form" class="space-y-4">
+      <input id="email" type="email" placeholder="Email" required class="w-full p-3 rounded bg-gray-700 text-white" />
+      <input id="password" type="password" placeholder="Password (min 6)" required class="w-full p-3 rounded bg-gray-700 text-white" />
 
-    <!-- Controls -->
-    <section class="bg-gray-800 rounded-xl p-4">
-      <h2 class="text-lg font-semibold mb-3">Simulasi Mining</h2>
-
-      <div class="grid sm:grid-cols-3 gap-3">
-        <label class="block">
-          <div class="text-sm text-gray-300">Hashrate HP (H/s)</div>
-          <input id="hashrate" type="number" min="1" placeholder="Contoh: 500" class="mt-1 w-full rounded-xl p-2 bg-gray-900 border border-gray-700 text-gray-100"/>
-        </label>
-
-        <label class="block">
-          <div class="text-sm text-gray-300">Jenis Koin</div>
-          <select id="coin" class="mt-1 w-full rounded-xl p-2 bg-gray-900 border border-gray-700 text-gray-100">
-            <option value="BTC">₿ Bitcoin (BTC)</option>
-            <option value="ETH">Ξ Ethereum (ETH)</option>
-            <option value="ETN">Ⓔ Electroneum (ETN)</option>
-          </select>
-        </label>
-
-        <label class="block">
-          <div class="text-sm text-gray-300">Target Durasi (jam) — opsional</div>
-          <input id="hours" type="number" min="1" placeholder="mis: 24" class="mt-1 w-full rounded-xl p-2 bg-gray-900 border border-gray-700 text-gray-100"/>
-        </label>
+      <div class="flex gap-2">
+        <button type="button" id="btnLogin" class="flex-1 bg-green-500 hover:bg-green-600 p-3 rounded">Login</button>
+        <button type="button" id="btnRegister" class="flex-1 bg-blue-500 hover:bg-blue-600 p-3 rounded">Daftar</button>
       </div>
+    </form>
 
-      <div class="flex gap-3 mt-4">
-        <button id="btnStart" class="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700">Mulai Mining</button>
-        <button id="btnStop"  class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700">Stop</button>
-        <button id="btnReset" class="px-4 py-2 rounded-xl bg-yellow-600 hover:bg-yellow-700">Reset</button>
-        <button id="btnExport" class="ml-auto px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700">Export CSV</button>
-      </div>
+    <p id="message" class="mt-4 text-center text-sm text-red-400"></p>
+    <p class="mt-4 text-xs text-gray-400">Catatan: Setelah daftar, cek email untuk verifikasi. Hanya user terverifikasi yang dapat login.</p>
+  </div>
 
-      <div class="mt-4 grid sm:grid-cols-3 gap-3 text-center">
-        <div class="p-3 bg-gray-900 rounded-xl">
-          <div class="text-xs text-gray-400">Total Koin</div>
-          <div id="totalCoin" class="text-2xl font-bold text-green-400">0.00000000</div>
-          <div id="coinLabel" class="text-xs text-gray-300">—</div>
-        </div>
-        <div class="p-3 bg-gray-900 rounded-xl">
-          <div class="text-xs text-gray-400">Hashrate realtime</div>
-          <div id="rtHash" class="text-2xl font-semibold">0 H/s</div>
-          <div class="text-xs text-gray-300">± jitter 5%</div>
-        </div>
-        <div class="p-3 bg-gray-900 rounded-xl">
-          <div class="text-xs text-gray-400">Waktu berjalan</div>
-          <div id="elapsed" class="text-2xl font-semibold">00:00:00</div>
-          <div id="targetLabel" class="text-xs text-gray-300">Target: —</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Price & Estimation -->
-    <section class="bg-gray-800 rounded-xl p-4">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-semibold">Harga Live & Estimasi</h3>
-        <button id="refreshPrice" class="px-3 py-1 rounded bg-gray-700">Refresh Harga</button>
-      </div>
-
-      <div class="grid sm:grid-cols-3 gap-3">
-        <div class="p-3 bg-gray-900 rounded-xl">
-          <div class="text-xs text-gray-400">Harga Saat Ini</div>
-          <div id="priceNow" class="text-lg font-bold">—</div>
-          <div id="priceNowIDR" class="text-xs text-gray-300">—</div>
-        </div>
-
-        <div class="p-3 bg-gray-900 rounded-xl">
-          <div class="text-xs text-gray-400">Estimasi / Hari</div>
-          <div id="estDay" class="text-lg font-semibold">—</div>
-          <div id="estDayIDR" class="text-xs text-gray-300">—</div>
-        </div>
-
-        <div class="p-3 bg-gray-900 rounded-xl">
-          <div class="text-xs text-gray-400">Estimasi / Bulan (30d)</div>
-          <div id="estMonth" class="text-lg font-semibold">—</div>
-          <div id="estMonthIDR" class="text-xs text-gray-300">—</div>
-        </div>
-      </div>
-
-      <p class="text-xs text-gray-400 mt-3">Harga diambil dari CoinGecko. Estimasi bersifat simulasi edukatif.</p>
-    </section>
-
-    <!-- Chart -->
-    <section class="bg-gray-800 rounded-xl p-4">
-      <h3 class="font-semibold mb-2">Grafik Realtime</h3>
-      <canvas id="liveChart" height="130" class="w-full bg-gray-900 rounded"></canvas>
-    </section>
-
-  </main>
-
-  <footer class="text-center text-xs text-gray-400 py-4">© 2025 Mining Crypto HP — Demo Edukasi</footer>
-
-  <!-- SCRIPT -->
   <script>
-  // ===== Globals & DOM refs =====
-  const btnStart = document.getElementById('btnStart');
-  const btnStop  = document.getElementById('btnStop');
-  const btnReset = document.getElementById('btnReset');
-  const btnExport= document.getElementById('btnExport');
-  const refreshPrice = document.getElementById('refreshPrice');
+    // ====== Ganti dengan firebaseConfig milikmu ======
+    const firebaseConfig = {
+  apiKey: "AIzaSyCc4ix1uGCaE-rsyM6Lg3jo6SzVjbXYCmw",
+  authDomain: "crypto-mining-d3811.firebaseapp.com",
+  projectId: "crypto-mining-d3811",
+  storageBucket: "crypto-mining-d3811.firebasestorage.app",
+  messagingSenderId: "1068882455445",
+  appId: "1:1068882455445:web:362538bf3bb36c598f649c"
+};
 
-  const inputHashrate = document.getElementById('hashrate');
-  const inputCoin     = document.getElementById('coin');
-  const inputHours    = document.getElementById('hours');
+    // Inisialisasi Firebase (namespaced)
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-  const elTotal = document.getElementById('totalCoin');
-  const elCoinLabel = document.getElementById('coinLabel');
-  const elRtHash = document.getElementById('rtHash');
-  const elElapsed = document.getElementById('elapsed');
-  const elTarget = document.getElementById('targetLabel');
+    // DOM
+    const emailEl = document.getElementById('email');
+    const passEl  = document.getElementById('password');
+    const msgEl   = document.getElementById('message');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnReg   = document.getElementById('btnRegister');
+    const themeBtn = document.getElementById('themeBtn');
 
-  const elPriceNow = document.getElementById('priceNow');
-  const elPriceNowIDR = document.getElementById('priceNowIDR');
-  const elEstDay = document.getElementById('estDay');
-  const elEstDayIDR = document.getElementById('estDayIDR');
-  const elEstMonth = document.getElementById('estMonth');
-  const elEstMonthIDR = document.getElementById('estMonthIDR');
+    // dark/light theme toggle (local only)
+    let dark = true;
+    themeBtn.addEventListener('click', () => {
+      dark = !dark;
+      document.getElementById('body').className = dark ? 'bg-gray-900 text-white min-h-screen flex items-center justify-center' : 'bg-white text-black min-h-screen flex items-center justify-center';
+    });
 
-  const themeToggle = document.getElementById('themeToggle');
+    function show(msg, color='red'){ msgEl.textContent = msg; msgEl.className = color==='red' ? 'mt-4 text-center text-sm text-red-400' : 'mt-4 text-center text-sm text-green-400'; }
 
-  // simulation state
-  let timerInterval = null;
-  let seconds = 0;
-  let totalCoin = 0;
-  let currentHash = 0;
-  let selectedCoin = 'BTC';
-  let ratePerSecond = 0; // coin per second (simulasi)
-  let dataLog = [];
+    // Register
+    btnReg.addEventListener('click', async () => {
+      const email = emailEl.value.trim();
+      const pass = passEl.value;
+      if(!email || pass.length < 6) return show('Masukkan email valid dan password minimal 6 karakter.');
+      try{
+        const userCred = await auth.createUserWithEmailAndPassword(email, pass);
+        await userCred.user.sendEmailVerification();
+        show('Pendaftaran berhasil — cek email untuk verifikasi.', 'green');
+        await auth.signOut();
+      }catch(e){ show(e.message); }
+    });
 
-  // Rates (fiktif) per H/s per hour — ubah jika ingin realistis
-  const rates = { BTC: 0.000000005, ETH: 0.0000001, ETN: 0.0005 };
-  const icons = { BTC: '₿', ETH: 'Ξ', ETN: 'Ⓔ' };
+    // Login
+    btnLogin.addEventListener('click', async () => {
+      const email = emailEl.value.trim();
+      const pass = passEl.value;
+      if(!email || !pass) return show('Isi email & password.');
+      try{
+        const userCred = await auth.signInWithEmailAndPassword(email, pass);
+        const user = userCred.user;
+        if(user.emailVerified){
+          // redirect to dashboard
+          window.location.href = 'dashboard.html';
+        } else {
+          show('Email belum diverifikasi. Cek inbox.', 'red');
+          await auth.signOut();
+        }
+      }catch(e){ show(e.message); }
+    });
 
-  // Live price storage
-  let livePrices = { BTC:null, ETH:null, ETN:null };
-
-  // ===== Chart setup =====
-  const ctx = document.getElementById('liveChart').getContext('2d');
-  const chart = new Chart(ctx, {
-    type: 'line',
-    data: { labels: [], datasets: [
-      { label: 'Total Koin', data: [], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.12)', fill:true, yAxisID:'y' },
-      { label: 'Hashrate (H/s)', data: [], borderColor: '#60a5fa', pointRadius:0, yAxisID:'y1' }
-    ]},
-    options: {
-      animation:false, responsive:true,
-      scales: {
-        x: { ticks: { color: '#cbd5e1' } },
-        y: { position:'left', ticks:{ color:'#cbd5e1' }, title:{ display:true, text:'Koin' } },
-        y1:{ position:'right', grid:{ drawOnChartArea:false }, ticks:{ color:'#cbd5e1' }, title:{ display:true, text:'H/s' } }
-      },
-      plugins: { legend: { labels: { color:'#cbd5e1' } } }
-    }
-  });
-
-  // ===== Helpers =====
-  function fmtTime(sec){
-    const h = String(Math.floor(sec/3600)).padStart(2,'0');
-    const m = String(Math.floor((sec%3600)/60)).padStart(2,'0');
-    const s = String(sec%60).padStart(2,'0');
-    return `${h}:${m}:${s}`;
-  }
-  function moneyUSD(x){ return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(x); }
-  function moneyIDR(x){ return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(x); }
-
-  // ===== CoinGecko fetch (USD + IDR) =====
-  async function fetchPrices(){
-    try {
-      const url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,electroneum&vs_currencies=usd,idr';
-      const res = await fetch(url, { cache:'no-store' });
-      if(!res.ok) throw new Error('fetch error');
-      const j = await res.json();
-      livePrices.BTC = j.bitcoin ? { usd:j.bitcoin.usd, idr:j.bitcoin.idr } : null;
-      livePrices.ETH = j.ethereum ? { usd:j.ethereum.usd, idr:j.ethereum.idr } : null;
-      livePrices.ETN = j.electroneum ? { usd:j.electroneum.usd, idr:j.electroneum.idr } : null;
-      updatePriceUI();
-    } catch(e){
-      console.warn('Price fetch failed:', e);
-    }
-  }
-
-  function updatePriceUI(){
-    const coin = selectedCoin;
-    const p = livePrices[coin];
-    if(!p){ elPriceNow.textContent='—'; elPriceNowIDR.textContent='—'; updateEstimation(); return; }
-    elPriceNow.textContent = moneyUSD(p.usd) + ` / ${coin}`;
-    elPriceNowIDR.textContent = moneyIDR(p.idr) + ` / ${coin}`;
-    updateEstimation();
-  }
-
-  function updateEstimation(){
-    // compute estimations using current ratePerSecond and livePrices
-    const coin = selectedCoin;
-    const p = livePrices[coin];
-    // coin per second is ratePerSecond (set on start or when user changes hashrate)
-    const cps = ratePerSecond || 0;
-    const perHour = cps * 3600;
-    const perDay = perHour * 24;
-    const perMonth = perDay * 30;
-    // show in UI
-    elEstDay.textContent = `${perDay.toFixed(8)} ${coin}`;
-    elEstMonth.textContent = `${perMonth.toFixed(8)} ${coin}`;
-    if(p){
-      elEstDayIDR.textContent = `${moneyUSD(perDay * p.usd)} • ${moneyIDR(perDay * p.idr)}`;
-      elEstMonthIDR.textContent = `${moneyUSD(perMonth * p.usd)} • ${moneyIDR(perMonth * p.idr)}`;
-    } else {
-      elEstDayIDR.textContent = '—';
-      elEstMonthIDR.textContent = '—';
-    }
-  }
-
-  // ===== Simulation step (runs every second) =====
-  function step(){
-    seconds += 1;
-    const base = Number(inputHashrate.value || 0);
-    const jitter = base * (1 + (Math.random() * 0.1 - 0.05)); // ±5% jitter
-    currentHash = Math.max(0, jitter);
-    totalCoin += ratePerSecond; // coin per second
-    // update displays
-    elTotal.textContent = totalCoin.toFixed(8);
-    elCoinLabel.textContent = `${icons[selectedCoin]} ${selectedCoin}`;
-    elRtHash.textContent = `${Math.round(currentHash)} H/s`;
-    elElapsed.textContent = fmtTime(seconds);
-    // chart
-    chart.data.labels.push(seconds);
-    chart.data.datasets[0].data.push(totalCoin);
-    chart.data.datasets[1].data.push(currentHash);
-    chart.update('none');
-    // log for export
-    dataLog.push({ detik: seconds, total: totalCoin, hash: Math.round(currentHash) });
-    // check target
-    const targetSec = Number(inputHours.value || 0) * 3600;
-    if(targetSec > 0 && seconds >= targetSec) stopMining();
-  }
-
-  // ===== Controls =====
-  function startMining(){
-    const baseHash = Number(inputHashrate.value || 0);
-    if(!baseHash || baseHash <= 0){ alert('Masukkan hashrate HP (H/s) yang valid.'); return; }
-    selectedCoin = inputCoin.value;
-    // compute ratePerSecond using the (fiktif) rates map: ratePerSecond = baseHash * rates[selectedCoin] / 3600
-    ratePerSecond = baseHash * (rates[selectedCoin] || 0) / 3600;
-    // immediately update estimation UI with new rate
-    updateEstimation();
-    if(!timerInterval){
-      timerInterval = setInterval(step, 1000);
-      btnStart.disabled = true;
-      btnStart.classList.add('opacity-60');
-    }
-  }
-
-  function stopMining(){
-    if(timerInterval){ clearInterval(timerInterval); timerInterval = null; btnStart.disabled = false; btnStart.classList.remove('opacity-60'); }
-  }
-
-  function resetAll(){
-    stopMining();
-    seconds = 0; totalCoin = 0; currentHash = 0; dataLog = [];
-    elTotal.textContent = '0.00000000';
-    elCoinLabel.textContent = '—';
-    elRtHash.textContent = '0 H/s';
-    elElapsed.textContent = '00:00:00';
-    elTarget.textContent = 'Target: —';
-    chart.data.labels = []; chart.data.datasets[0].data = []; chart.data.datasets[1].data = []; chart.update();
-    // maintain ratePerSecond based on new hashrate (if user changed)
-    const baseHash = Number(inputHashrate.value || 0);
-    ratePerSecond = baseHash * (rates[selectedCoin]||0) / 3600;
-    updateEstimation();
-  }
-
-  function exportCSV(){
-    if(!dataLog.length){ alert('Belum ada data untuk diexport.'); return; }
-    let rows = [['detik','total_koin','hashrate_hs']];
-    dataLog.forEach(r => rows.push([r.detik, r.total.toFixed(8), r.hash]));
-    const csv = rows.map(r => r.join(',')).join('\\n');
-    const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'simulasi-mining.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  }
-
-  // ===== Bind UI events =====
-  btnStart.addEventListener('click', startMining);
-  btnStop.addEventListener('click', stopMining);
-  btnReset.addEventListener('click', resetAll);
-  btnExport.addEventListener('click', exportCSV);
-  refreshPrice.addEventListener('click', fetchPrices);
-
-  inputHashrate.addEventListener('input', () => {
-    // update ratePerSecond live (even before start) so estimation changes
-    const baseHash = Number(inputHashrate.value || 0);
-    ratePerSecond = baseHash * (rates[selectedCoin]||0) / 3600;
-    updateEstimation();
-  });
-
-  inputCoin.addEventListener('change', () => {
-    selectedCoin = inputCoin.value;
-    // recompute ratePerSecond and update UI
-    const baseHash = Number(inputHashrate.value || 0);
-    ratePerSecond = baseHash * (rates[selectedCoin]||0) / 3600;
-    updatePriceUI();
-  });
-
-  // ===== Theme toggle =====
-  themeToggle.addEventListener('click', () => {
-    document.documentElement.classList.toggle('dark');
-    themeToggle.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
-  });
-
-  // ===== Auto fetch prices every 60s, initial fetch =====
-  fetchPrices();
-  setInterval(fetchPrices, 60000);
-
-  // initial estimation (no hashrate)
-  updateEstimation();
-
+    // auto-redirect jika sudah login & verified
+    auth.onAuthStateChanged(u => {
+      if(u && u.emailVerified){ window.location.href = 'dashboard.html'; }
+    });
   </script>
 </body>
 </html>
