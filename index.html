@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Mining Crypto di HP — Simulasi & Panduan Lengkap</title>
+  <meta name="description" content="Simulasikan mining Bitcoin, Ethereum, atau Electroneum langsung di HP Anda. Dilengkapi kalkulator, grafik real-time, dan panduan aman menambang di smartphone.">
+  <meta name="keywords" content="mining crypto di hp, mining bitcoin hp, mining ethereum hp, simulasi mining, kalkulator mining, menambang di hp">
+  <meta name="author" content="Mining Crypto HP">
+  <meta name="theme-color" content="#4f46e5">
+
+  <link rel="icon" href="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=032" type="image/svg+xml">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 font-sans transition-colors duration-500">
+
+  <!-- Header -->
+  <header class="bg-indigo-600 dark:bg-indigo-800 text-white p-6 text-center flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold">Mining Crypto di HP</h1>
+      <p class="mt-1 text-lg">Simulasi & Panduan Lengkap Menambang di Smartphone</p>
+    </div>
+    <button id="themeToggle" class="bg-gray-800 dark:bg-gray-200 dark:text-gray-800 text-white px-3 py-2 rounded transition-colors duration-300">
+      🌙
+    </button>
+  </header>
+
+  <!-- Kalkulator + Live Mining -->
+  <section class="bg-white dark:bg-gray-800 p-6 max-w-4xl mx-auto shadow rounded-lg mt-6">
+    <h2 class="text-2xl font-semibold mb-4">Simulasi Mining di HP</h2>
+    <div class="space-y-4">
+      <div>
+        <label class="block mb-1 font-semibold">Hashrate HP (H/s)</label>
+        <input type="number" id="hashrate" placeholder="Contoh: 500" class="w-full border dark:border-gray-700 rounded p-2 dark:bg-gray-900">
+      </div>
+      <div>
+        <label class="block mb-1 font-semibold">Jenis Koin</label>
+        <select id="coin" class="w-full border dark:border-gray-700 rounded p-2 dark:bg-gray-900">
+          <option value="BTC">₿ Bitcoin (BTC)</option>
+          <option value="ETH">Ξ Ethereum (ETH)</option>
+          <option value="ETN">Ⓔ Electroneum (ETN)</option>
+        </select>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="startMining()" class="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded">Mulai Mining</button>
+        <button onclick="stopMining()" class="bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded">Stop</button>
+        <button onclick="resetMining()" class="bg-yellow-500 dark:bg-yellow-600 text-white px-4 py-2 rounded">Reset</button>
+      </div>
+      <div id="result" class="mt-4 p-3 bg-gray-100 dark:bg-gray-900 rounded text-lg font-bold">
+        0
+      </div>
+      <canvas id="miningChart" height="120"></canvas>
+      <button onclick="exportCSV()" class="mt-4 bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded">Export CSV</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 dark:bg-black text-white p-6 text-center mt-8">
+    <p>© 2025 Mining Crypto HP — Semua Hak Dilindungi</p>
+    <p class="text-sm mt-2">Disclaimer: Mining di HP memiliki risiko, lakukan dengan bijak.</p>
+  </footer>
+
+  <script>
+    let miningInterval;
+    let totalCoin = 0;
+    let coinIcon = "";
+    let coinType = "";
+    let ratePerSecond = 0;
+    let timeElapsed = 0;
+    let chart;
+    let dataLog = [];
+
+    // Dark mode toggle
+    document.getElementById("themeToggle").addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      document.getElementById("themeToggle").textContent =
+        document.documentElement.classList.contains("dark") ? "☀️" : "🌙";
+    });
+
+    // Chart init
+    function initChart() {
+      const ctx = document.getElementById("miningChart").getContext("2d");
+      chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [{
+            label: "Koin Terkumpul",
+            data: [],
+            borderColor: "#4f46e5",
+            backgroundColor: "rgba(79,70,229,0.1)",
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { title: { display: true, text: "Waktu (detik)" } },
+            y: { title: { display: true, text: "Total Koin" } }
+          }
+        }
+      });
+    }
+
+    // Start Mining
+    function startMining() {
+      let hashrate = parseFloat(document.getElementById("hashrate").value);
+      coinType = document.getElementById("coin").value;
+
+      if (!hashrate) {
+        document.getElementById("result").innerHTML = "<span class='text-red-500'>Masukkan hashrate HP</span>";
+        return;
+      }
+
+      let rates = { BTC: 0.000000005, ETH: 0.0000001, ETN: 0.0005 };
+      let icons = { BTC: "₿", ETH: "Ξ", ETN: "Ⓔ" };
+
+      ratePerSecond = hashrate * rates[coinType] / 3600;
+      coinIcon = icons[coinType];
+
+      if (!chart) initChart();
+      if (miningInterval) clearInterval(miningInterval);
+
+      miningInterval = setInterval(() => {
+        timeElapsed++;
+        totalCoin += ratePerSecond;
+        document.getElementById("result").textContent = `${totalCoin.toFixed(8)} ${coinIcon} ${coinType}`;
+        
+        chart.data.labels.push(timeElapsed);
+        chart.data.datasets[0].data.push(totalCoin);
+        chart.update();
+
+        dataLog.push({ detik: timeElapsed, total: totalCoin.toFixed(8) });
+      }, 1000);
+    }
+
+    // Stop Mining
+    function stopMining() {
+      clearInterval(miningInterval);
+      miningInterval = null;
+    }
+
+    // Reset Mining
+    function resetMining() {
+      stopMining();
+      totalCoin = 0;
+      timeElapsed = 0;
+      dataLog = [];
+      if (chart) {
+        chart.data.labels = [];
+        chart.data.datasets[0].data = [];
+        chart.update();
+      }
+      document.getElementById("result").textContent = "0";
+    }
+
+    // Export CSV
+    function exportCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,Detik,Total Koin\n";
+      dataLog.forEach(row => {
+        csvContent += `${row.detik},${row.total}\n`;
+      });
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", "hasil-mining.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
