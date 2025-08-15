@@ -1,32 +1,50 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crypto Mining Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
-  <script type="module" src="dashboard.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="dashboard-container">
-    <h1>🚀 Crypto Mining</h1>
-    <div class="coin-section">
-      <span id="coinCount">0</span> 🪙
+  <header class="header">
+    <div>
+      <h1>Crypto Mining Dashboard</h1>
+      <p>Simulasi mining realtime & estimasi pendapatan</p>
     </div>
-    <div class="controls">
-      <button id="startBtn">Mulai</button>
-      <button id="stopBtn">Stop</button>
-      <button id="resetBtn">Reset</button>
-    </div>
-    <div class="progress-bar">
-      <div id="progressFill"></div>
-    </div>
-    <select id="durationSelect">
-      <option value="10">10 Detik</option>
-      <option value="30">30 Detik</option>
-      <option value="60">60 Detik</option>
+    <button id="logoutBtn" class="btn btn-red">Logout</button>
+  </header>
+
+  <section class="card">
+    <p><strong>Logged in as:</strong> <span id="userEmail">-</span></p>
+    <p><strong>Status:</strong> <span class="status verified">Verified</span></p>
+  </section>
+
+  <section class="card">
+    <h2>Simulasi Mining</h2>
+    <label for="hashrate">Hashrate (H/s)</label>
+    <input type="number" id="hashrate" value="500">
+
+    <label for="coin">Pilih Koin</label>
+    <select id="coin">
+      <option value="ETH">Ethereum (ETH)</option>
+      <option value="BTC">Bitcoin (BTC)</option>
+      <option value="DOGE">Dogecoin (DOGE)</option>
     </select>
-    <button id="logoutBtn" class="logout">Logout</button>
-  </div>
+
+    <label for="duration">Target durasi (jam)</label>
+    <input type="number" id="duration" placeholder="opsional">
+
+    <div class="btn-group">
+      <button id="startBtn" class="btn btn-green">Mulai</button>
+      <button id="stopBtn" class="btn btn-red">Stop</button>
+      <button id="resetBtn" class="btn btn-yellow">Reset</button>
+    </div>
+
+    <p class="total">Total Koin</p>
+    <p id="totalCoins" class="coin-count">0.00000000</p>
+  </section>
+
+  <script type="module" src="dashboard.js"></script>
 </body>
 </html>

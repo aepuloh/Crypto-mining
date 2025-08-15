@@ -1,5 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCc4ix1uGCaE-rsyM6Lg3jo6SzVjbXYCmw",
@@ -13,72 +13,47 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+const userEmail = document.getElementById("userEmail");
+const logoutBtn = document.getElementById("logoutBtn");
+
 const startBtn = document.getElementById("startBtn");
 const stopBtn = document.getElementById("stopBtn");
 const resetBtn = document.getElementById("resetBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const coinCount = document.getElementById("coinCount");
-const progressFill = document.getElementById("progressFill");
-const durationSelect = document.getElementById("durationSelect");
+const hashrateInput = document.getElementById("hashrate");
+const coinSelect = document.getElementById("coin");
+const durationInput = document.getElementById("duration");
+const totalCoins = document.getElementById("totalCoins");
 
-let coins = 0;
-let mining = false;
-let timer, progressTimer;
-let totalTime = 10;
-let elapsedTime = 0;
+let miningInterval;
+let total = 0;
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    userEmail.textContent = user.email;
+  } else {
+    window.location.href = "index.html";
+  }
+});
+
+logoutBtn.addEventListener("click", () => {
+  signOut(auth);
+});
 
 startBtn.addEventListener("click", () => {
-  if (mining) return;
-  mining = true;
-
-  totalTime = parseInt(durationSelect.value);
-  elapsedTime = 0;
-  progressFill.style.width = "0%";
-
-  timer = setInterval(() => {
-    coins++;
-    coinCount.textContent = coins;
-
-    coinCount.classList.add("coin-bounce");
-    setTimeout(() => coinCount.classList.remove("coin-bounce"), 300);
-  }, 1000);
-
-  progressTimer = setInterval(() => {
-    elapsedTime++;
-    let progress = (elapsedTime / totalTime) * 100;
-    progressFill.style.width = progress + "%";
-
-    if (elapsedTime >= totalTime) {
-      clearInterval(timer);
-      clearInterval(progressTimer);
-      mining = false;
-    }
+  clearInterval(miningInterval);
+  miningInterval = setInterval(() => {
+    let rate = parseFloat(hashrateInput.value) || 0;
+    total += rate / 1000000;
+    totalCoins.textContent = total.toFixed(8);
   }, 1000);
 });
 
 stopBtn.addEventListener("click", () => {
-  clearInterval(timer);
-  clearInterval(progressTimer);
-  mining = false;
+  clearInterval(miningInterval);
 });
 
 resetBtn.addEventListener("click", () => {
-  clearInterval(timer);
-  clearInterval(progressTimer);
-  coins = 0;
-  elapsedTime = 0;
-  mining = false;
-  coinCount.textContent = coins;
-  progressFill.style.width = "0%";
-});
-
-logoutBtn.addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "index.html";
-});
-
-onAuthStateChanged(auth, (u) => {
-  if (!u || !u.emailVerified) {
-    window.location.href = "index.html";
-  }
+  clearInterval(miningInterval);
+  total = 0;
+  totalCoins.textContent = "0.00000000";
 });
