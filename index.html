@@ -3,81 +3,64 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Crypto Mining</title>
+  <title>Crypto Mining Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module" src="app.js"></script>
-</head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center" id="body">
-
-  <!-- LOGIN PAGE -->
-  <div id="loginPage" class="bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-lg">
-    <h1 class="text-2xl font-bold text-center mb-4">Crypto Mining</h1>
-
-    <div class="flex justify-end mb-4">
-      <button id="themeBtn" class="bg-yellow-400 text-black px-3 py-1 rounded">🌙/☀️</button>
-    </div>
-
-    <form id="auth-form" class="space-y-4">
-      <input id="email" type="email" placeholder="Email" required class="w-full p-3 rounded bg-gray-700 text-white" />
-      <input id="password" type="password" placeholder="Password (min 6)" required class="w-full p-3 rounded bg-gray-700 text-white" />
-
-      <div class="flex gap-2">
-        <button type="button" id="btnLogin" class="flex-1 bg-green-500 hover:bg-green-600 p-3 rounded">Login</button>
-        <button type="button" id="btnRegister" class="flex-1 bg-blue-500 hover:bg-blue-600 p-3 rounded">Daftar</button>
-      </div>
-    </form>
-
-    <p id="message" class="mt-4 text-center text-sm text-red-400"></p>
-    <p class="mt-4 text-xs text-gray-400">Catatan: Setelah daftar, cek email untuk verifikasi.</p>
-  </div>
-
-  <!-- DASHBOARD PAGE (hidden by default) -->
-  <div id="dashboardPage" class="hidden w-full h-full">
-
-    <!-- Tombol Menu ☰ -->
-    <div class="fixed top-4 left-4 z-50">
-      <button onclick="toggleMenu()" class="text-2xl bg-gray-800 p-2 rounded">☰</button>
-    </div>
-
-    <!-- Sidebar -->
-    <div id="sidebar" class="fixed top-0 left-0 h-full w-0 bg-gray-800 overflow-x-hidden transition-all duration-300 z-40">
-      <button class="absolute top-4 right-4 text-3xl" onclick="toggleMenu()">×</button>
-      <nav class="mt-16 flex flex-col space-y-4 px-6">
-        <a href="#dashboard" onclick="toggleMenu()" class="hover:text-green-400">Dashboard</a>
-        <a href="#mining" onclick="toggleMenu()" class="hover:text-green-400">Mining</a>
-        <a href="#profile" onclick="toggleMenu()" class="hover:text-green-400">Profile</a>
-        <a href="#wallet" onclick="toggleMenu()" class="hover:text-green-400">Dompet</a>
-      </nav>
-    </div>
-
-    <!-- Isi Dashboard -->
-    <div class="p-6">
-      <h2 id="dashboard" class="text-2xl font-bold mb-4">Dashboard</h2>
-      <p>Selamat datang di dashboard kamu 🎉</p>
-
-      <h2 id="mining" class="text-2xl font-bold mt-8 mb-4">Mining</h2>
-      <p>Status mining kamu akan tampil di sini...</p>
-
-      <h2 id="profile" class="text-2xl font-bold mt-8 mb-4">Profile</h2>
-      <p>Informasi akun user.</p>
-
-      <h2 id="wallet" class="text-2xl font-bold mt-8 mb-4">Dompet</h2>
-      <p>Saldo & alamat wallet.</p>
-    </div>
-  </div>
-
-  <!-- JS untuk sidebar -->
-  <script>
-    function toggleMenu() {
-      let sidebar = document.getElementById("sidebar");
-      sidebar.style.width = (sidebar.style.width === "250px") ? "0" : "250px";
+  <style>
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
     }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <!-- Navbar -->
+  <div class="flex items-center justify-between p-4 bg-gray-800 shadow">
+    <button id="menuBtn" class="text-2xl">☰</button>
+    <h1 class="text-lg font-bold">Crypto Mining Dashboard</h1>
+    <button class="bg-red-500 px-3 py-1 rounded">Logout</button>
+  </div>
 
-    // Contoh login sukses (simulasi)
-    document.getElementById("btnLogin").addEventListener("click", () => {
-      // TODO: ganti dengan verifikasi login dari app.js
-      document.getElementById("loginPage").classList.add("hidden");
-      document.getElementById("dashboardPage").classList.remove("hidden");
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar fixed top-0 left-0 w-64 h-full bg-gray-800 shadow-lg z-50 p-6">
+    <h2 class="text-xl font-bold mb-6">Menu</h2>
+    <ul class="space-y-4">
+      <li><a href="dashboard.html" class="block hover:text-yellow-400">🏠 Dashboard</a></li>
+      <li><a href="mining.html" class="block hover:text-yellow-400">⛏️ Mining</a></li>
+      <li><a href="profile.html" class="block hover:text-yellow-400">👤 Profile</a></li>
+      <li><a href="wallet.html" class="block hover:text-yellow-400">💰 Dompet</a></li>
+    </ul>
+  </div>
+
+  <!-- Overlay -->
+  <div id="overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
+
+  <!-- Konten Halaman -->
+  <div class="p-6">
+    <p class="mb-4">Logged in as: <span class="text-yellow-400">airdropshunterid@gmail.com</span></p>
+    <p>Status: <span class="text-green-400">Verified</span></p>
+
+    <div class="mt-6 p-4 bg-gray-800 rounded">
+      <h2 class="text-xl font-bold mb-4">Selamat Datang di Dashboard</h2>
+      <p>Gunakan menu di samping untuk navigasi ke halaman lain.</p>
+    </div>
+  </div>
+
+  <script>
+    const menuBtn = document.getElementById("menuBtn");
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+
+    menuBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("open");
+      overlay.classList.toggle("hidden");
+    });
+
+    overlay.addEventListener("click", () => {
+      sidebar.classList.remove("open");
+      overlay.classList.add("hidden");
     });
   </script>
 </body>
