@@ -3,31 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Crypto Mining - Login / Daftar</title>
-  <meta name="description" content="Login dan daftar pengguna untuk Crypto Mining (Email + Verifikasi)." />
+  <title>Crypto Mining</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="module" src="app.js"></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center" id="body">
 
-  <!-- Tombol Menu ☰ -->
-  <div class="fixed top-4 left-4 z-50">
-    <button onclick="toggleMenu()" class="text-2xl bg-gray-800 p-2 rounded">☰</button>
-  </div>
-
-  <!-- Sidebar -->
-  <div id="sidebar" class="fixed top-0 left-0 h-full w-0 bg-gray-800 overflow-x-hidden transition-all duration-300 z-40">
-    <button class="absolute top-4 right-4 text-3xl" onclick="toggleMenu()">×</button>
-    <nav class="mt-16 flex flex-col space-y-4 px-6">
-      <a href="#dashboard" onclick="toggleMenu()" class="hover:text-green-400">Dashboard</a>
-      <a href="#mining" onclick="toggleMenu()" class="hover:text-green-400">Mining</a>
-      <a href="#profile" onclick="toggleMenu()" class="hover:text-green-400">Profile</a>
-      <a href="#wallet" onclick="toggleMenu()" class="hover:text-green-400">Dompet</a>
-    </nav>
-  </div>
-
-  <!-- Konten Login -->
-  <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-lg">
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-lg">
     <h1 class="text-2xl font-bold text-center mb-4">Crypto Mining</h1>
 
     <div class="flex justify-end mb-4">
@@ -45,20 +28,57 @@
     </form>
 
     <p id="message" class="mt-4 text-center text-sm text-red-400"></p>
-    <p class="mt-4 text-xs text-gray-400">Catatan: Setelah daftar, cek email untuk verifikasi. Hanya user terverifikasi yang dapat login.</p>
+    <p class="mt-4 text-xs text-gray-400">Catatan: Setelah daftar, cek email untuk verifikasi.</p>
+  </div>
+
+  <!-- DASHBOARD PAGE (hidden by default) -->
+  <div id="dashboardPage" class="hidden w-full h-full">
+
+    <!-- Tombol Menu ☰ -->
+    <div class="fixed top-4 left-4 z-50">
+      <button onclick="toggleMenu()" class="text-2xl bg-gray-800 p-2 rounded">☰</button>
+    </div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed top-0 left-0 h-full w-0 bg-gray-800 overflow-x-hidden transition-all duration-300 z-40">
+      <button class="absolute top-4 right-4 text-3xl" onclick="toggleMenu()">×</button>
+      <nav class="mt-16 flex flex-col space-y-4 px-6">
+        <a href="#dashboard" onclick="toggleMenu()" class="hover:text-green-400">Dashboard</a>
+        <a href="#mining" onclick="toggleMenu()" class="hover:text-green-400">Mining</a>
+        <a href="#profile" onclick="toggleMenu()" class="hover:text-green-400">Profile</a>
+        <a href="#wallet" onclick="toggleMenu()" class="hover:text-green-400">Dompet</a>
+      </nav>
+    </div>
+
+    <!-- Isi Dashboard -->
+    <div class="p-6">
+      <h2 id="dashboard" class="text-2xl font-bold mb-4">Dashboard</h2>
+      <p>Selamat datang di dashboard kamu 🎉</p>
+
+      <h2 id="mining" class="text-2xl font-bold mt-8 mb-4">Mining</h2>
+      <p>Status mining kamu akan tampil di sini...</p>
+
+      <h2 id="profile" class="text-2xl font-bold mt-8 mb-4">Profile</h2>
+      <p>Informasi akun user.</p>
+
+      <h2 id="wallet" class="text-2xl font-bold mt-8 mb-4">Dompet</h2>
+      <p>Saldo & alamat wallet.</p>
+    </div>
   </div>
 
   <!-- JS untuk sidebar -->
   <script>
     function toggleMenu() {
       let sidebar = document.getElementById("sidebar");
-      if (sidebar.style.width === "250px") {
-        sidebar.style.width = "0";
-      } else {
-        sidebar.style.width = "250px";
-      }
+      sidebar.style.width = (sidebar.style.width === "250px") ? "0" : "250px";
     }
-  </script>
 
+    // Contoh login sukses (simulasi)
+    document.getElementById("btnLogin").addEventListener("click", () => {
+      // TODO: ganti dengan verifikasi login dari app.js
+      document.getElementById("loginPage").classList.add("hidden");
+      document.getElementById("dashboardPage").classList.remove("hidden");
+    });
+  </script>
 </body>
 </html>
