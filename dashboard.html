@@ -1,50 +1,40 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto Mining Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Crypto Mining - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <header class="header">
-    <div>
-      <h1>Crypto Mining Dashboard</h1>
-      <p>Simulasi mining realtime & estimasi pendapatan</p>
-    </div>
-    <button id="logoutBtn" class="btn btn-red">Logout</button>
-  </header>
+<body class="bg-gray-900 text-white min-h-screen">
 
-  <section class="card">
-    <p><strong>Logged in as:</strong> <span id="userEmail">-</span></p>
-    <p><strong>Status:</strong> <span class="status verified">Verified</span></p>
-  </section>
+  <!-- Navbar -->
+  <div class="flex items-center justify-between p-4 bg-gray-800 shadow">
+    <button id="menuBtn" class="text-2xl">☰</button>
+    <h1 class="text-lg font-bold">Crypto Mining</h1>
+    <button id="logout" class="bg-red-500 px-3 py-1 rounded">Logout</button>
+  </div>
 
-  <section class="card">
-    <h2>Simulasi Mining</h2>
-    <label for="hashrate">Hashrate (H/s)</label>
-    <input type="number" id="hashrate" value="500">
+  <!-- Sidebar -->
+  <div id="sidebar" class="fixed top-0 left-0 w-64 h-full bg-gray-800 shadow-lg z-50 p-6 transform -translate-x-full transition-transform duration-300">
+    <h2 class="text-xl font-bold mb-6">Menu</h2>
+    <ul class="space-y-4">
+      <li><a href="#" data-page="dashboard" class="menu-link block hover:text-yellow-400">🏠 Dashboard</a></li>
+      <li><a href="#" data-page="mining" class="menu-link block hover:text-yellow-400">⛏️ Mining</a></li>
+      <li><a href="#" data-page="profile" class="menu-link block hover:text-yellow-400">👤 Profile</a></li>
+      <li><a href="#" data-page="wallet" class="menu-link block hover:text-yellow-400">💰 Dompet</a></li>
+    </ul>
+  </div>
 
-    <label for="coin">Pilih Koin</label>
-    <select id="coin">
-      <option value="ETH">Ethereum (ETH)</option>
-      <option value="BTC">Bitcoin (BTC)</option>
-      <option value="DOGE">Dogecoin (DOGE)</option>
-    </select>
+  <!-- Overlay -->
+  <div id="overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
 
-    <label for="duration">Target durasi (jam)</label>
-    <input type="number" id="duration" placeholder="opsional">
+  <!-- Konten -->
+  <div id="content" class="p-6">
+    <h2 class="text-2xl font-bold mb-4">Selamat Datang di Dashboard</h2>
+    <p>Gunakan menu di samping untuk navigasi ke halaman lain.</p>
+  </div>
 
-    <div class="btn-group">
-      <button id="startBtn" class="btn btn-green">Mulai</button>
-      <button id="stopBtn" class="btn btn-red">Stop</button>
-      <button id="resetBtn" class="btn btn-yellow">Reset</button>
-    </div>
-
-    <p class="total">Total Koin</p>
-    <p id="totalCoins" class="coin-count">0.00000000</p>
-  </section>
-
-  <script type="module" src="dashboard.js"></script>
+  <script src="dashboard.js"></script>
 </body>
 </html>
