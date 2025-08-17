@@ -1,55 +1,46 @@
-<!doctype html>
-<html lang="id">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
   <title>Admin Panel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="./styles.css" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div class="overlay"></div>
   <div class="container">
     <h1>👑 Admin Panel</h1>
 
-    <div id="authSection" class="card">
-      <h3>Login Admin</h3>
-      <input id="adminEmail" type="email" placeholder="Email admin" />
-      <input id="adminPass" type="password" placeholder="Password" />
-      <div class="row">
-        <button id="loginAdminBtn">🔑 Login</button>
-      </div>
-      <p class="muted">Hanya UID yang terdaftar di <code>ADMIN_UIDS</code> bisa mengakses.</p>
+    <div class="search-bar">
+      <input type="text" id="searchBox" placeholder="🔍 Cari email / UID...">
+      <button class="btn-refresh" onclick="loadUsers()">🔄 Refresh</button>
     </div>
 
-    <div id="adminContent" style="display:none;">
-      <div class="row space-between">
-        <div class="row">
-          <input type="text" id="searchBox" placeholder="🔍 Cari email / UID..." />
-          <button id="refreshBtn">🔄 Refresh</button>
-        </div>
-        <button id="logoutAdminBtn" class="danger">🚪 Logout</button>
-      </div>
-
-      <div class="table-wrap">
+    <div class="card">
+      <h2>Daftar User</h2>
+      <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>UID</th>
               <th>Email</th>
-              <th>BTC</th>
-              <th>USD</th>
-              <th>Rate (BTC/hari)</th>
-              <th>VIP</th>
-              <th>Iklan</th>
-              <th>Expire VIP2</th>
+              <th>Balance</th>
+              <th>Mining Rate</th>
+              <th>VIP Level</th>
+              <th>Iklan Harian</th>
               <th>Aksi</th>
             </tr>
           </thead>
-          <tbody id="usersTable"></tbody>
+          <tbody id="usersTable">
+            <!-- data user masuk sini -->
+          </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <script type="module" src="./admin.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
