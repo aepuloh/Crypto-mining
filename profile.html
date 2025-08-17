@@ -1,14 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profile • Crypto Mining (GST)</title>
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Profile • Crypto Mining (GST)</title>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header id="navbar"></header>
-
   <div class="container">
     <h2>Profile</h2>
     <div class="grid">
@@ -17,23 +16,19 @@
         <p><strong>Email:</strong> <span id="pEmail">-</span></p>
         <p><strong>UID:</strong> <span id="pUid">-</span></p>
         <p><strong>VIP:</strong> <span id="pVip">VIP 0</span></p>
-        <p><strong>Kontrak VIP1 berakhir:</strong> <span id="pVip1End">-</span></p>
+        <p><strong>VIP1 Berakhir:</strong> <span id="pVipEnd">-</span></p>
       </div>
-
       <div class="card">
         <h3>Balance</h3>
-        <p><strong>Saldo Mining:</strong> <span id="pGst">0.00000000</span> GST</p>
-        <p><strong>Saldo Deposit:</strong> $<span id="pUsd">0.00</span></p>
-        <p><strong>Rate Harian Saat Ini:</strong> <span id="pRate">0</span> GST/hari</p>
-        <div class="row">
-          <button id="btnClaim" class="btn">Claim Earnings</button>
-        </div>
-        <p class="muted" id="pMsg"></p>
+        <p>GST: <strong id="pGst">0</strong> GST</p>
+        <p>USD Deposit: $<strong id="pUsd">0.00</strong></p>
+        <p>Rate Harian: <span id="pRate">0</span> GST/day</p>
+        <button id="btnClaim" class="btn">Claim (Sync Accrual)</button>
+        <p id="pMsg" class="muted"></p>
       </div>
     </div>
   </div>
-
-  <script type="module" src="common.js"></script>
-  <script type="module" src="profile.js"></script>
+<script type="module" src="common.js"></script>
+<script type="module" src="profile.js"></script>
 </body>
 </html>

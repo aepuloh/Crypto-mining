@@ -1,41 +1,36 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login • Crypto Mining (GST)</title>
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Login • Crypto Mining (GST)</title>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="container auth">
     <h1>Crypto Mining (GST)</h1>
-
     <div class="card">
       <div class="tabs">
         <button id="tabLogin" class="tab active">Login</button>
         <button id="tabRegister" class="tab">Daftar</button>
       </div>
-
       <div id="loginPane" class="pane shown">
         <label>Email</label>
-        <input id="loginEmail" type="email" placeholder="email@example.com" />
+        <input id="loginEmail" type="email" />
         <label>Password</label>
-        <input id="loginPassword" type="password" placeholder="••••••••" />
+        <input id="loginPassword" type="password" />
         <button id="btnLogin" class="btn primary">Login</button>
       </div>
-
       <div id="registerPane" class="pane">
         <label>Email</label>
-        <input id="regEmail" type="email" placeholder="email@example.com" />
+        <input id="regEmail" type="email" />
         <label>Password</label>
-        <input id="regPassword" type="password" placeholder="Minimal 6 karakter" />
+        <input id="regPassword" type="password" />
         <button id="btnRegister" class="btn">Daftar</button>
       </div>
-
       <p id="authMsg" class="muted"></p>
     </div>
   </div>
-
-  <script type="module" src="index.js"></script>
+<script type="module" src="index.js"></script>
 </body>
 </html>

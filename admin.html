@@ -1,29 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin Panel</title>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header id="navbar"></header>
   <div class="container">
     <h2>Admin Panel</h2>
     <div class="card">
-      <p class="muted">Hanya UID dalam <code>ADMIN_UIDS</code> yang dapat mengakses.</p>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>UID</th><th>Email</th><th>VIP</th><th>GST</th><th>USD</th><th>Rate</th><th>Iklan Hari Ini</th><th>VIP1 End</th>
-          </tr>
-        </thead>
-        <tbody id="usersTbody"></tbody>
-      </table>
+      <h3>Deposit Requests</h3>
+      <table class="table"><thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Proof</th><th>Action</th></tr></thead>
+      <tbody id="depTbody"></tbody></table>
       <p id="adminMsg" class="muted"></p>
     </div>
   </div>
-  <script type="module" src="common.js"></script>
-  <script type="module" src="admin.js"></script>
+<script type="module" src="common.js"></script>
+<script type="module" src="admin.js"></script>
 </body>
 </html>
