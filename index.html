@@ -7,70 +7,66 @@
   <link href="./styles.css" rel="stylesheet" />
 </head>
 <body>
-  <!-- NAV placed globally but for index we keep minimal -->
-  <div class="navbar">
-    <div class="nav-left">⚡ Crypto Mining</div>
-    <div class="nav-right">
-      <a href="./index.html" class="active">Home</a>
-      <a href="./dashboard.html">Dashboard</a>
-      <a href="./admin.html" id="adminLink" style="display:none">Admin</a>
-    </div>
-  </div>
+  <div class="container slide-in">
+    <h1>⚡ Crypto Mining</h1>
+    <button id="themeToggle" class="theme-btn">🌙 / ☀️</button>
 
-  <div class="app">
     <div class="card">
-      <h1>⚡ Crypto Mining (Simulasi)</h1>
-      <div style="max-width:520px; margin:auto">
-        <h2>Masuk / Daftar</h2>
-        <input id="email" type="email" placeholder="Email" />
-        <input id="password" type="password" placeholder="Password" />
-        <div class="row" style="justify-content:center">
-          <button id="loginBtn" class="button btn-primary">Login</button>
-          <button id="registerBtn" class="button btn-secondary">Daftar</button>
-        </div>
-        <p id="authMsg" class="muted"></p>
+      <h2>Masuk / Daftar</h2>
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <div class="row">
+        <button id="loginBtn" class="success">Login</button>
+        <button id="registerBtn" class="secondary">Daftar</button>
       </div>
+      <p id="authMsg" class="muted"></p>
     </div>
   </div>
 
   <script type="module">
-    import { initFirebase, login, register, onAuth } from './app.js';
-    import { ADMIN_UIDS } from './firebase-config.js';
+    import { initFirebase, auth, register, login } from './app.js';
+    import { getDoc, doc, getFirestore } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     initFirebase();
+    const db = getFirestore();
 
     const email = document.getElementById('email');
     const password = document.getElementById('password');
-    const authMsg = document.getElementById('authMsg');
+    const msg = document.getElementById('authMsg');
 
+    // LOGIN
     document.getElementById('loginBtn').onclick = async () => {
-      authMsg.textContent = 'Logging in...';
+      msg.textContent = '🔄 Logging in...';
       try {
-        await login(email.value, password.value);
-        authMsg.textContent = '✅ Login sukses.';
-        // redirect to dashboard
-        setTimeout(()=> location.href = 'dashboard.html', 700);
+        const user = await login(email.value, password.value);
+
+        // cek role admin / user
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists() && snap.data().isAdmin) {
+          window.location.href = "./admin.html";
+        } else {
+          window.location.href = "./dashboard.html";
+        }
       } catch (e) {
-        authMsg.textContent = '❌ ' + (e?.message || e);
+        msg.textContent = '❌ ' + (e?.message || e);
       }
     };
 
+    // REGISTER
     document.getElementById('registerBtn').onclick = async () => {
-      authMsg.textContent = 'Registering...';
+      msg.textContent = '🔄 Register...';
       try {
         await register(email.value, password.value);
-        authMsg.textContent = '✅ Akun dibuat. Silakan login.';
+        msg.textContent = '✅ Akun dibuat. Silakan login.';
       } catch (e) {
-        authMsg.textContent = '❌ ' + (e?.message || e);
+        msg.textContent = '❌ ' + (e?.message || e);
       }
     };
 
-    // show admin link if signed in and is admin
-    onAuth((user)=>{
-      const adminLink = document.getElementById('adminLink');
-      if (user && ADMIN_UIDS.includes(user.uid)) adminLink.style.display = 'inline-block';
-      else adminLink.style.display = 'none';
-    });
+    // Toggle theme
+    document.getElementById('themeToggle').onclick = () => {
+      document.body.classList.toggle("light");
+    };
   </script>
 </body>
 </html>
