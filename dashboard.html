@@ -1,40 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Crypto Mining - Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Mining Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-
-  <!-- Navbar -->
-  <div class="flex items-center justify-between p-4 bg-gray-800 shadow">
-    <button id="menuBtn" class="text-2xl">☰</button>
-    <h1 class="text-lg font-bold">Crypto Mining</h1>
-    <button id="logout" class="bg-red-500 px-3 py-1 rounded">Logout</button>
-  </div>
-
-  <!-- Sidebar -->
-  <div id="sidebar" class="fixed top-0 left-0 w-64 h-full bg-gray-800 shadow-lg z-50 p-6 transform -translate-x-full transition-transform duration-300">
-    <h2 class="text-xl font-bold mb-6">Menu</h2>
-    <ul class="space-y-4">
-      <li><a href="#" data-page="dashboard" class="menu-link block hover:text-yellow-400">🏠 Dashboard</a></li>
-      <li><a href="#" data-page="mining" class="menu-link block hover:text-yellow-400">⛏️ Mining</a></li>
-      <li><a href="#" data-page="profile" class="menu-link block hover:text-yellow-400">👤 Profile</a></li>
-      <li><a href="#" data-page="wallet" class="menu-link block hover:text-yellow-400">💰 Dompet</a></li>
-    </ul>
-  </div>
-
-  <!-- Overlay -->
-  <div id="overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
-
-  <!-- Konten -->
-  <div id="content" class="p-6">
-    <h2 class="text-2xl font-bold mb-4">Selamat Datang di Dashboard</h2>
-    <p>Gunakan menu di samping untuk navigasi ke halaman lain.</p>
-  </div>
-
-  <script src="dashboard.js"></script>
+<body class="bg-gray-900 text-white">
+  <script type="module" src="dashboard.js"></script>
 </body>
 </html>
