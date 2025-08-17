@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Konversi GST → USD</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header id="navbar"></header>
+  <div class="container">
+    <h2>Konversi GST → USD</h2>
+    <div class="card">
+      <p>Kurs tetap: <strong>1 GST = $0.0003</strong></p>
+      <label>Jumlah GST</label>
+      <input id="gstInput" type="number" min="0" step="0.00000001" placeholder="0" />
+      <p>Hasil: $<span id="usdOut">0.00</span></p>
+    </div>
+  </div>
+  <script type="module" src="common.js"></script>
+  <script type="module" src="convert.js"></script>
+</body>
+</html>

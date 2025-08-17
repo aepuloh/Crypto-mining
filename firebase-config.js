@@ -1,5 +1,4 @@
 // ==== Firebase config (ISI DENGAN PUNYAMU) ====
-// Dapatkan dari Firebase Console → Project settings → General → Your apps (Web)
 export const firebaseConfig = {
   apiKey: "AIzaSyCc4ix1uGCaE-rsyM6Lg3jo6SzVjbXYCmw",
   authDomain: "crypto-mining-d3811.firebaseapp.com",
@@ -9,7 +8,7 @@ export const firebaseConfig = {
   appId: "1:1068882455445:web:362538bf3bb36c598f649c"
 };
 
-// UID admin yang boleh akses admin.html
+// UID admin yang boleh akses Admin Panel (tampilkan menu & akses halaman)
 export const ADMIN_UIDS = [
   // contoh: "UtDD46hVtkNckFSep1TNqqE1oaa2"
 ];
@@ -22,3 +21,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.11/firebase
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Konstanta kurs dan aturan
+export const GST_RATE_USD = 0.0003; // 1 GST = $0.0003
+export const MAX_ADS_PER_DAY = 20;

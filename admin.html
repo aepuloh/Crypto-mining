@@ -3,31 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Crypto Mining</title>
+  <title>Admin Panel</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <header id="navbar"></header>
   <div class="container">
-    <header class="header">
-      <h2>Admin Panel (Read-only)</h2>
-      <div class="header-actions">
-        <a class="btn" href="dashboard.html">↩ Dashboard</a>
-        <button id="btnLogoutAdmin" class="btn danger">Logout</button>
-      </div>
-    </header>
-
+    <h2>Admin Panel</h2>
     <div class="card">
-      <p class="muted">Hanya UID yang ada di <code>ADMIN_UIDS</code> yang bisa melihat data ini.</p>
+      <p class="muted">Hanya UID dalam <code>ADMIN_UIDS</code> yang dapat mengakses.</p>
       <table class="table">
         <thead>
           <tr>
-            <th>UID</th>
-            <th>Email</th>
-            <th>VIP</th>
-            <th>Hashrate</th>
-            <th>Saldo BTC</th>
-            <th>Iklan Hari Ini</th>
-            <th>Terakhir Update</th>
+            <th>UID</th><th>Email</th><th>VIP</th><th>GST</th><th>USD</th><th>Rate</th><th>Iklan Hari Ini</th><th>VIP1 End</th>
           </tr>
         </thead>
         <tbody id="usersTbody"></tbody>
@@ -35,7 +23,7 @@
       <p id="adminMsg" class="muted"></p>
     </div>
   </div>
-
+  <script type="module" src="common.js"></script>
   <script type="module" src="admin.js"></script>
 </body>
 </html>

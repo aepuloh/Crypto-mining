@@ -3,56 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard - Crypto Mining</title>
+  <title>Dashboard • Crypto Mining (GST)</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <h2>Dashboard</h2>
-      <div class="header-actions">
-        <button id="btnToggleTheme" class="btn">🌙/☀️</button>
-        <button id="btnLogout" class="btn danger">Logout</button>
-      </div>
-    </header>
+  <header id="navbar"></header>
 
+  <div class="container">
+    <h2>Dashboard</h2>
     <div class="grid">
       <div class="card">
-        <h3>Profil</h3>
-        <p><strong>Email:</strong> <span id="userEmail">-</span></p>
-        <p><strong>UID:</strong> <span id="userUid">-</span></p>
-        <p><strong>Level VIP:</strong> <span id="vipLevel">Free</span></p>
-      </div>
-
-      <div class="card">
-        <h3>Statistik</h3>
-        <p><strong>Hashrate:</strong> <span id="hashrate">0</span> H/s</p>
-        <p><strong>Saldo BTC:</strong> <span id="balanceBTC">0.00000000</span> BTC</p>
-        <p><strong>Estimasi USD:</strong> $<span id="balanceUSD">0.00</span></p>
-      </div>
-
-      <div class="card">
-        <h3>Iklan Harian</h3>
-        <p><strong>Dilihat hari ini:</strong> <span id="adsToday">0</span>/20</p>
-        <button id="btnWatchAd" class="btn">Nonton Iklan (Bonus Hashrate)</button>
-      </div>
-
-      <div class="card">
-        <h3>Mining</h3>
-        <div class="progress">
-          <div id="mineBar" class="progress-bar" style="width: 0%"></div>
-        </div>
+        <h3>Mining Status</h3>
+        <p><strong>Status:</strong> <span id="mineStatus">Idle</span></p>
+        <div class="progress"><div id="mineBar" class="progress-bar" style="width:0%"></div></div>
         <div class="row">
           <button id="btnStart" class="btn primary">Start</button>
           <button id="btnStop" class="btn">Stop</button>
         </div>
-        <p id="mineMsg" class="muted"></p>
+        <p class="muted" id="mineMsg"></p>
+      </div>
+
+      <div class="card">
+        <h3>Upgrade VIP</h3>
+        <p>Level saat ini: <strong id="vipLevel">VIP 0</strong></p>
+        <ul class="list">
+          <li>VIP 0: 20 GST/hari (+1 per iklan, max 20 iklan → 40/hari)</li>
+          <li>VIP 1: 100 GST/hari • kontrak 7 hari • harga $5</li>
+        </ul>
+        <div class="row">
+          <button id="btnWatchAd" class="btn">Nonton Iklan (+1 GST/hari)</button>
+          <button id="btnBuyVIP1" class="btn primary">Upgrade ke VIP 1 ($5)</button>
+        </div>
+        <p class="muted" id="vipMsg"></p>
       </div>
     </div>
 
     <p id="dashMsg" class="muted"></p>
   </div>
 
+  <script type="module" src="common.js"></script>
   <script type="module" src="dashboard.js"></script>
 </body>
 </html>
