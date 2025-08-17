@@ -1,12 +1,53 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto Mining Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8" />
+  <title>Dashboard Mining</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="./styles.css" rel="stylesheet" />
 </head>
-<body class="bg-gray-900 text-white">
-  <script type="module" src="dashboard.js"></script>
+<body>
+  <div class="container">
+    <div class="row space-between">
+      <h1>📊 Dashboard Mining</h1>
+      <button id="logoutBtn" class="danger">Logout</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Saldo BTC</h3>
+        <div class="big"><span id="balanceBtc">0.00000000</span> BTC</div>
+        <p class="muted">Akumulasi hasil mining (simulasi).</p>
+      </div>
+
+      <div class="card">
+        <h3>Saldo USD</h3>
+        <div class="big">$ <span id="usdBalance">0.00</span></div>
+        <p class="muted">Dipakai untuk membeli VIP2 ($5 / 6 hari).</p>
+      </div>
+
+      <div class="card">
+        <h3>Status & Rate</h3>
+        <p>VIP: <b id="vipLevel">VIP 0</b></p>
+        <p>Rate: <b id="rateDay">0.00000000</b> BTC/hari</p>
+        <p>Iklan hari ini: <b id="adsToday">0/20</b></p>
+        <p id="dailyCountdown" class="muted">Reset dalam ...</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Aksi</h3>
+      <div class="row">
+        <button id="watchAdBtn">🎥 Nonton Iklan (+rate)</button>
+        <button id="buyVip2Btn" class="primary">💎 Beli VIP2 ($5 / 6 hari)</button>
+      </div>
+      <p id="actionMsg" class="muted"></p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"><p id="toastMessage"></p></div>
+
+  <script type="module" src="./dashboard.js"></script>
 </body>
 </html>
