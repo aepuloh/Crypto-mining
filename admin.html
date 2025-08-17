@@ -1,46 +1,172 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <title>Admin Panel</title>
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="./styles.css" rel="stylesheet" />
 </head>
 <body>
-  <div class="overlay"></div>
-  <div class="container">
-    <h1>👑 Admin Panel</h1>
-
-    <div class="search-bar">
-      <input type="text" id="searchBox" placeholder="🔍 Cari email / UID...">
-      <button class="btn-refresh" onclick="loadUsers()">🔄 Refresh</button>
+  <div class="navbar">
+    <div class="nav-left">⚡ Crypto Mining</div>
+    <div class="nav-right">
+      <a href="./dashboard.html">Dashboard</a>
+      <a href="./admin.html" class="active">Admin</a>
+      <a href="#" id="logoutLink">Logout</a>
     </div>
+  </div>
 
+  <div class="app">
     <div class="card">
-      <h2>Daftar User</h2>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Balance</th>
-              <th>Mining Rate</th>
-              <th>VIP Level</th>
-              <th>Iklan Harian</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="usersTable">
-            <!-- data user masuk sini -->
-          </tbody>
-        </table>
+      <h2>Admin Panel</h2>
+      <div id="authBlock">
+        <p class="muted">Silakan login admin (akun harus ada di ADMIN_UIDS).</p>
+        <input id="adminEmail" placeholder="email admin" />
+        <input id="adminPass" placeholder="password" type="password" />
+        <div class="row">
+          <button id="loginAdminBtn" class="button btn-primary">Login</button>
+          <button id="logoutAdminBtn" class="button btn-ghost" style="display:none">Logout</button>
+        </div>
+      </div>
+
+      <div id="adminContent" style="display:none" class="fadeIn">
+        <div class="row" style="justify-content:space-between; margin-bottom:12px">
+          <input id="searchBox" placeholder="Cari email / uid..." style="max-width:360px" />
+          <button id="refreshBtn" class="button btn-secondary">Refresh</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>UID</th><th>Email</th><th>BTC</th><th>USD</th><th>Rate/day</th><th>VIP</th><th>Ads</th><th>VIP Expire</th><th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <script type="module" src="admin.js"></script>
+  <div id="toast" class="toast"><span id="toastMessage"></span></div>
+
+  <script type="module">
+    import { initFirebase, onAuth, logout } from './app.js';
+    import { ADMIN_UIDS } from './firebase-config.js';
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    initFirebase();
+    const auth = getAuth();
+    const db = getFirestore();
+
+    const loginBtn = document.getElementById('loginAdminBtn');
+    const logoutBtn = document.getElementById('logoutAdminBtn');
+    const loginEmail = document.getElementById('adminEmail');
+    const loginPass = document.getElementById('adminPass');
+    const authBlock = document.getElementById('authBlock');
+    const adminContent = document.getElementById('adminContent');
+    const usersTable = document.getElementById('usersTable');
+    const searchBox = document.getElementById('searchBox');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const logoutLink = document.getElementById('logoutLink');
+
+    function showToast(msg){ document.getElementById('toastMessage').textContent = msg; const t = document.getElementById('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+
+    loginBtn.onclick = async () => {
+      try{
+        await signInWithEmailAndPassword(auth, loginEmail.value, loginPass.value);
+      }catch(e){ showToast('❌ '+(e?.message||e)) }
+    };
+    logoutBtn.onclick = async ()=> { await logout(); };
+
+    onAuth(user=>{
+      if (!user) {
+        authBlock.style.display = ''; adminContent.style.display = 'none'; logoutBtn.style.display = 'none'; return;
+      }
+      if (!ADMIN_UIDS.includes(user.uid)) {
+        showToast('⚠️ Akun bukan admin'); logout(); return;
+      }
+      // admin ok
+      authBlock.style.display = 'none';
+      adminContent.style.display = '';
+      logoutBtn.style.display = '';
+      loadUsers();
+    });
+
+    logoutLink.onclick = async ()=> { await logout(); location.href='./index.html'; };
+
+    async function loadUsers(){
+      usersTable.innerHTML = '<tr><td colspan="9">Loading...</td></tr>';
+      const qs = await getDocs(collection(db,'users'));
+      const rows = qs.docs.map(d=>({ uid:d.id, ...d.data() }));
+      render(rows);
+    }
+
+    function render(list){
+      usersTable.innerHTML = '';
+      if (!list.length) { usersTable.innerHTML = '<tr><td colspan="9">No users</td></tr>'; return; }
+      list.forEach(u=>{
+        const vipExpire = u.vipContractEnd ? new Date(u.vipContractEnd).toLocaleString() : '-';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="width:13%">${u.uid}</td>
+          <td style="width:18%">${u.email||'-'}</td>
+          <td>${(u.balanceBtc||0).toFixed(8)}</td>
+          <td>$${(u.usdBalance||0).toFixed(2)}</td>
+          <td>${(u.miningRatePerDayBtc||0).toFixed(8)}</td>
+          <td>VIP ${u.vipLevel||0}</td>
+          <td>${u.adsWatchedToday||0}/20</td>
+          <td>${vipExpire}</td>
+          <td>
+            <button class="button btn-ok" onclick="topupUsd('${u.uid}',1)">$+1</button>
+            <button class="button btn-danger" onclick="deductUsd('${u.uid}',1)">$-1</button>
+            <button class="button btn-secondary" onclick="resetAds('${u.uid}')">Reset Ads</button>
+            <button class="button btn-primary" onclick="setVipPrompt('${u.uid}')">Set VIP</button>
+          </td>
+        `;
+        usersTable.appendChild(tr);
+      });
+    }
+
+    searchBox.addEventListener('input', async (e)=>{
+      const q = e.target.value.toLowerCase();
+      const qs = await getDocs(collection(db,'users'));
+      const rows = qs.docs.map(d=>({ uid:d.id, ...d.data() }));
+      const f = rows.filter(u => (u.email||'').toLowerCase().includes(q) || (u.uid||'').toLowerCase().includes(q));
+      render(f);
+    });
+
+    refreshBtn.onclick = loadUsers;
+
+    // expose admin actions (use global so button onclick can call them)
+    window.topupUsd = async (uid, amt) => {
+      const ref = doc(db,'users',uid); const snap = await getDoc(ref); const u = snap.data();
+      await updateDoc(ref, { usdBalance: (u.usdBalance||0) + amt });
+      showToast('✅ Topup berhasil');
+      loadUsers();
+    };
+    window.deductUsd = async (uid, amt) => {
+      const ref = doc(db,'users',uid); const snap = await getDoc(ref); const u = snap.data();
+      if ((u.usdBalance||0) < amt) { showToast('Saldo USD tidak cukup'); return; }
+      await updateDoc(ref, { usdBalance: (u.usdBalance||0) - amt });
+      showToast('✅ Deduct berhasil'); loadUsers();
+    };
+    window.resetAds = async (uid) => { await updateDoc(doc(db,'users',uid), { adsWatchedToday: 0 }); showToast('✅ Reset Ads'); loadUsers(); };
+    window.setVipPrompt = async (uid) => {
+      const lv = prompt('Masukkan level VIP (0:free,2:VIP2):','2');
+      const level = parseInt(lv,10);
+      if (![0,2].includes(level)) return alert('Level invalid');
+      if (level===0) { await updateDoc(doc(db,'users',uid), { vipLevel:0, vipContractEnd:null, miningRatePerDayBtc: BASE_RATE_DAY_BTC }); showToast('VIP set 0'); }
+      else {
+        const days = parseInt(prompt('Lama kontrak (hari)','6'),10) || 6;
+        const end = Date.now() + days*24*60*60*1000;
+        await updateDoc(doc(db,'users',uid), { vipLevel:2, vipContractEnd:end, miningRatePerDayBtc: VIP2_RATE_DAY_BTC });
+        showToast('VIP2 aktif');
+      }
+      loadUsers();
+    };
+  </script>
 </body>
 </html>
