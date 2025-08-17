@@ -2,133 +2,93 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <title>Dashboard Mining</title>
+  <title>Crypto Mining | Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="./styles.css" rel="stylesheet" />
 </head>
 <body>
-  <div class="navbar">
-    <div class="nav-left">⚡ Crypto Mining</div>
-    <div class="nav-right">
-      <a href="./dashboard.html" class="active">Dashboard</a>
-      <a href="./admin.html" id="adminLink" style="display:none">Admin</a>
-      <a href="#" id="logoutTop">Logout</a>
+  <!-- Tombol Dark/Light -->
+  <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+
+  <!-- === NAVBAR === -->
+  <nav class="navbar">
+    <h2>⚡ Crypto Mining</h2>
+    <ul>
+      <li><a href="./dashboard.html" class="active">📊 Dashboard</a></li>
+      <li><a href="./admin.html">👑 Admin Panel</a></li>
+      <li><a href="./index.html" onclick="logout()">🚪 Logout</a></li>
+    </ul>
+  </nav>
+
+  <!-- === MAIN CONTAINER === -->
+  <div class="container">
+    <h1>Selamat Datang di Dashboard</h1>
+
+    <!-- Info Akun -->
+    <div class="card">
+      <h2>💼 Info Akun</h2>
+      <p><b>Email:</b> <span id="email"></span></p>
+      <p><b>Saldo BTC:</b> <span id="balanceBtc">0.00000000</span></p>
+      <p><b>Saldo USD:</b> $<span id="usdBalance">0.00</span></p>
+      <p><b>Hashrate:</b> <span id="hashrate">0.00100000</span> BTC / hari</p>
+      <p><b>VIP:</b> <span id="vipLevel">0</span></p>
+    </div>
+
+    <!-- Mining Section -->
+    <div class="card">
+      <h2>⛏️ Mining Status</h2>
+      <p id="miningStatus">Mining berjalan...</p>
+      <progress id="progressBar" max="100" value="0"></progress>
+      <p><b>Total Mining Hari Ini:</b> <span id="dailyMining">0.00000000</span> BTC</p>
+    </div>
+
+    <!-- Ads Section -->
+    <div class="card">
+      <h2>📺 Nonton Iklan untuk Bonus</h2>
+      <p>Tambah hashrate dengan menonton iklan (max 20 / hari).</p>
+      <button id="watchAdBtn" class="secondary">▶️ Nonton Iklan</button>
+      <p><span id="adsWatched">0</span>/20 iklan ditonton hari ini</p>
     </div>
   </div>
-
-  <div class="app">
-    <div class="grid">
-      <div class="card">
-        <h2>Saldo BTC</h2>
-        <div class="big"><span id="balanceBtc">0.00000000</span> BTC</div>
-        <p class="muted">Hasil akumulasi mining (simulasi).</p>
-      </div>
-
-      <div class="card">
-        <h2>Saldo USD</h2>
-        <div class="big">$ <span id="usdBalance">0.00</span></div>
-        <p class="muted">Dipakai untuk beli VIP2.</p>
-      </div>
-
-      <div class="card">
-        <h2>Status</h2>
-        <p>VIP: <b id="vipLevel">VIP 0</b></p>
-        <p>Rate: <b id="rateDay">0.00000000</b> BTC/day</p>
-        <p>Iklan hari ini: <b id="adsToday">0/20</b></p>
-        <p id="dailyCountdown" class="muted">Reset dalam ...</p>
-      </div>
-    </div>
-
-    <div class="card fadeIn">
-      <h2>Aksi</h2>
-      <div class="row">
-        <button id="watchAdBtn" class="button btn-secondary">🎥 Nonton Iklan</button>
-        <button id="buyVip2Btn" class="button btn-primary">💎 Beli VIP2 ($5)</button>
-      </div>
-      <p id="actionMsg" class="muted"></p>
-    </div>
-  </div>
-
-  <div id="toast" class="toast"><span id="toastMessage"></span></div>
 
   <script type="module">
-    import { initFirebase, onAuth, logout, clientDailyResetIfNeeded, startMiningLoop, watchAd, buyVIP2, BASE_RATE_DAY_BTC } from './app.js';
-    import { ADMIN_UIDS } from './firebase-config.js';
-    import { doc, getDoc, onSnapshot, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { auth, logout, getUserData, watchAd } from './app.js';
 
-    initFirebase();
-    const db = getFirestore();
+    // Toggle theme
+    window.toggleTheme = function() {
+      document.body.classList.toggle("light");
+    };
 
-    function showToast(msg){
-      const t = document.getElementById('toast');
-      const m = document.getElementById('toastMessage');
-      m.textContent = msg;
-      t.classList.add('show');
-      setTimeout(()=> t.classList.remove('show'), 3000);
-    }
+    // Logout
+    window.logout = function() {
+      logout();
+    };
 
-    function startCountdown(){
-      const el = document.getElementById('dailyCountdown');
-      function tick(){
-        const now = new Date();
-        const midnight = new Date(); midnight.setHours(24,0,0,0);
-        const diff = midnight - now;
-        if (diff<=0){ el.textContent='⏳ Reset sedang diproses...'; setTimeout(()=> el.textContent='Reset dalam 24j 0m 0d', 1500); return; }
-        const h = Math.floor(diff/3600000); const m = Math.floor((diff%3600000)/60000); const s = Math.floor((diff%60000)/1000);
-        el.textContent = `Reset dalam ${h}j ${m}m ${s}d`;
+    // Ambil data user
+    async function loadDashboard() {
+      const user = auth.currentUser;
+      if (!user) {
+        window.location.href = "./index.html";
+        return;
       }
-      tick(); setInterval(tick,1000);
+      const data = await getUserData(user.uid);
+      if (data) {
+        document.getElementById("email").textContent = user.email;
+        document.getElementById("balanceBtc").textContent = (data.balanceBtc || 0).toFixed(8);
+        document.getElementById("usdBalance").textContent = (data.usdBalance || 0).toFixed(2);
+        document.getElementById("hashrate").textContent = (data.miningRatePerDayBtc || 0.001).toFixed(8);
+        document.getElementById("vipLevel").textContent = data.vipLevel || 0;
+        document.getElementById("adsWatched").textContent = data.adsWatchedToday || 0;
+      }
     }
 
-    document.getElementById('watchAdBtn').onclick = async ()=>{
-      const user = getAuth().currentUser;
-      if (!user) return;
-      try{
-        const res = await watchAd(user.uid);
-        showToast(`🎥 Iklan ke-${res.watched}. Rate: ${res.newRate.toFixed(8)} BTC/day`);
-      }catch(e){ showToast('❌ '+(e?.message||e)) }
+    // Nonton iklan
+    document.getElementById("watchAdBtn").onclick = async () => {
+      await watchAd();
+      loadDashboard();
     };
 
-    document.getElementById('buyVip2Btn').onclick = async ()=>{
-      const user = getAuth().currentUser;
-      if (!user) return;
-      try{
-        const { end } = await buyVIP2(user.uid);
-        showToast(`💎 VIP2 aktif s.d. ${new Date(end).toLocaleString()}`);
-      }catch(e){ showToast('❌ '+(e?.message||e)) }
-    };
-
-    // logout top nav
-    document.getElementById('logoutTop').onclick = async ()=>{
-      await logout();
-      location.href = './index.html';
-    };
-
-    // auth listener
-    onAuth(async (user)=>{
-      const adminLink = document.getElementById('adminLink');
-      if (!user) { location.href='./index.html'; return; }
-      // show admin link if admin
-      adminLink.style.display = (ADMIN_UIDS.includes(user.uid)) ? 'inline-block' : 'none';
-
-      // daily reset fallback
-      await clientDailyResetIfNeeded(user.uid);
-
-      // live bind user doc
-      const ref = doc(db, 'users', user.uid);
-      onSnapshot(ref, snap => {
-        if (!snap.exists()) return;
-        const u = snap.data();
-        document.getElementById('balanceBtc').textContent = (u.balanceBtc||0).toFixed(8);
-        document.getElementById('usdBalance').textContent = (u.usdBalance||0).toFixed(2);
-        document.getElementById('vipLevel').textContent = `VIP ${u.vipLevel||0}`;
-        document.getElementById('rateDay').textContent = (u.miningRatePerDayBtc||BASE_RATE_DAY_BTC).toFixed(8);
-        document.getElementById('adsToday').textContent = `${u.adsWatchedToday||0}/${MAX_ADS}`;
-      });
-
-      startCountdown();
-      startMiningLoop(user.uid);
-    });
+    loadDashboard();
   </script>
 </body>
 </html>
