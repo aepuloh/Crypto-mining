@@ -88,6 +88,23 @@ tr:nth-child(even) {
   background: rgba(255,255,255,0.05);
 }
 
+/* Tombol dasar */
+.btn {
+  padding: 6px 12px;
+  margin: 2px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+.btn:hover { opacity: 0.85; }
+
+/* Warna tombol */
+.btn.add { background: #4caf50; color: white; }      /* hijau */
+.btn.deduct { background: #f44336; color: white; }   /* merah */
+.btn.reset { background: #2196f3; color: white; }    /* biru */
+.btn.vip { background: #ffc107; color: black; }      /* emas */
 /* Tombol aksi */
 button {
   padding: 6px 12px;
