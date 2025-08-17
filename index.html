@@ -7,57 +7,70 @@
   <link href="./styles.css" rel="stylesheet" />
 </head>
 <body>
-  <div class="container">
-    <h1>⚡ Crypto Mining</h1>
-
-    <div class="card glass">
-      <h2>Masuk / Daftar</h2>
-      <input id="email" type="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Password" />
-      <div class="row">
-        <button id="loginBtn">Login</button>
-        <button id="registerBtn" class="secondary">Daftar</button>
-      </div>
-      <p id="authMsg" class="muted"></p>
+  <!-- NAV placed globally but for index we keep minimal -->
+  <div class="navbar">
+    <div class="nav-left">⚡ Crypto Mining</div>
+    <div class="nav-right">
+      <a href="./index.html" class="active">Home</a>
+      <a href="./dashboard.html">Dashboard</a>
+      <a href="./admin.html" id="adminLink" style="display:none">Admin</a>
     </div>
+  </div>
 
-    <div class="card glass">
-      <h3>Setelah login:</h3>
-      <div class="row">
-        <a class="link-btn" href="./dashboard.html">📊 Buka Dashboard</a>
-        <a class="link-btn" href="./admin.html">👑 Admin Panel</a>
+  <div class="app">
+    <div class="card">
+      <h1>⚡ Crypto Mining (Simulasi)</h1>
+      <div style="max-width:520px; margin:auto">
+        <h2>Masuk / Daftar</h2>
+        <input id="email" type="email" placeholder="Email" />
+        <input id="password" type="password" placeholder="Password" />
+        <div class="row" style="justify-content:center">
+          <button id="loginBtn" class="button btn-primary">Login</button>
+          <button id="registerBtn" class="button btn-secondary">Daftar</button>
+        </div>
+        <p id="authMsg" class="muted"></p>
       </div>
     </div>
   </div>
 
   <script type="module">
-    import { initFirebase, auth, register, login } from './app.js';
+    import { initFirebase, login, register, onAuth } from './app.js';
+    import { ADMIN_UIDS } from './firebase-config.js';
 
-    initFirebase(); // inisialisasi
+    initFirebase();
 
     const email = document.getElementById('email');
     const password = document.getElementById('password');
-    const msg = document.getElementById('authMsg');
+    const authMsg = document.getElementById('authMsg');
 
     document.getElementById('loginBtn').onclick = async () => {
-      msg.textContent = 'Logging in...';
+      authMsg.textContent = 'Logging in...';
       try {
         await login(email.value, password.value);
-        msg.textContent = '✅ Login sukses. Buka Dashboard.';
+        authMsg.textContent = '✅ Login sukses.';
+        // redirect to dashboard
+        setTimeout(()=> location.href = 'dashboard.html', 700);
       } catch (e) {
-        msg.textContent = '❌ ' + (e?.message || e);
+        authMsg.textContent = '❌ ' + (e?.message || e);
       }
     };
 
     document.getElementById('registerBtn').onclick = async () => {
-      msg.textContent = 'Register...';
+      authMsg.textContent = 'Registering...';
       try {
         await register(email.value, password.value);
-        msg.textContent = '✅ Akun dibuat. Silakan login.';
+        authMsg.textContent = '✅ Akun dibuat. Silakan login.';
       } catch (e) {
-        msg.textContent = '❌ ' + (e?.message || e);
+        authMsg.textContent = '❌ ' + (e?.message || e);
       }
     };
+
+    // show admin link if signed in and is admin
+    onAuth((user)=>{
+      const adminLink = document.getElementById('adminLink');
+      if (user && ADMIN_UIDS.includes(user.uid)) adminLink.style.display = 'inline-block';
+      else adminLink.style.display = 'none';
+    });
   </script>
 </body>
 </html>
