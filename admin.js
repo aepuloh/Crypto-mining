@@ -63,21 +63,21 @@ function render(list){
     const tr = document.createElement('tr');
     const vipExpire = u.vipContractEnd ? new Date(u.vipContractEnd).toLocaleString() : '-';
     tr.innerHTML = `
-      <td>${u.uid}</td>
-      <td>${u.email||'-'}</td>
-      <td>${(u.balanceBtc||0).toFixed(8)}</td>
-      <td>$${(u.usdBalance||0).toFixed(2)}</td>
-      <td>${(u.miningRatePerDayBtc||0).toFixed(8)}</td>
-      <td>VIP ${u.vipLevel||0}</td>
-      <td>${u.adsWatchedToday||0}/20</td>
-      <td>${vipExpire}</td>
-      <td class="row">
-        <button onclick="topupUsd('${u.uid}',1)" class="secondary">$+1</button>
-        <button onclick="deductUsd('${u.uid}',1)" class="danger">$-1</button>
-        <button onclick="resetAds('${u.uid}')">Reset Ads</button>
-        <button onclick="setVipPrompt('${u.uid}')">Set VIP</button>
-      </td>
-    `;
+  <td>${u.uid}</td>
+  <td>${u.email || '-'}</td>
+  <td>${(u.balanceBtc || 0).toFixed(8)}</td>
+  <td>$${(u.usdBalance || 0).toFixed(2)}</td>
+  <td>${(u.miningRatePerDayBtc || 0).toFixed(8)}</td>
+  <td>VIP ${u.vipLevel || 0}</td>
+  <td>${u.adsWatchedToday || 0}/20</td>
+  <td>${vipExpire}</td>
+  <td class="row">
+    <button class="btn add" onclick="topupUsd('${u.uid}',1)">+$1</button>
+    <button class="btn deduct" onclick="deductUsd('${u.uid}',1)">- $1</button>
+    <button class="btn reset" onclick="resetAds('${u.uid}')">Reset Ads</button>
+    <button class="btn vip" onclick="setVipPrompt('${u.uid}')">Set VIP</button>
+  </td>
+`;
     usersTable.appendChild(tr);
   });
 }
