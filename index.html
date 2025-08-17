@@ -3,38 +3,28 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Crypto Mining Dashboard</title>
+  <title>Crypto Mining - Login / Daftar</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .sidebar {
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-    }
-    .sidebar.open {
-      transform: translateX(0);
-    }
-  </style>
+  <script type="module" src="index.js"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-  <!-- Navbar -->
-  <div class="flex items-center justify-between p-4 bg-gray-800 shadow">
-    <button id="menuBtn" class="text-2xl">☰</button>
-    <h1 class="text-lg font-bold">Crypto Mining Dashboard</h1>
-    <button class="bg-red-500 px-3 py-1 rounded">Logout</button>
-  </div>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+  <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-lg">
+    <h1 class="text-2xl font-bold text-center mb-4">Crypto Mining</h1>
 
-  <!-- Sidebar -->
-  <div id="sidebar" class="sidebar fixed top-0 left-0 w-64 h-full bg-gray-800 shadow-lg z-50 p-6">
-    <h2 class="text-xl font-bold mb-6">Menu</h2>
-    <ul class="space-y-4">
-      <li><a href="dashboard.html" class="block hover:text-yellow-400">🏠 Dashboard</a></li>
-      <li><a href="mining.html" class="block hover:text-yellow-400">⛏️ Mining</a></li>
-      <li><a href="profile.html" class="block hover:text-yellow-400">👤 Profile</a></li>
-      <li><a href="wallet.html" class="block hover:text-yellow-400">💰 Dompet</a></li>
-    </ul>
-  </div>
+    <form id="auth-form" class="space-y-4">
+      <input id="email" type="email" placeholder="Email" required class="w-full p-3 rounded bg-gray-700 text-white" />
+      <input id="password" type="password" placeholder="Password (min 6)" required class="w-full p-3 rounded bg-gray-700 text-white" />
 
-  <!-- Overlay -->
+      <div class="flex gap-2">
+        <button type="button" id="btnLogin" class="flex-1 bg-green-500 hover:bg-green-600 p-3 rounded">Login</button>
+        <button type="button" id="btnRegister" class="flex-1 bg-blue-500 hover:bg-blue-600 p-3 rounded">Daftar</button>
+      </div>
+    </form>
+
+    <p id="message" class="mt-4 text-center text-sm text-red-400"></p>
+  </div>
+</body>
+</html>  <!-- Overlay -->
   <div id="overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
 
   <!-- Konten Halaman -->
