@@ -1,94 +1,58 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <title>Crypto Mining | Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="./styles.css" rel="stylesheet" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Crypto Mining</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Tombol Dark/Light -->
-  <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-
-  <!-- === NAVBAR === -->
-  <nav class="navbar">
-    <h2>⚡ Crypto Mining</h2>
-    <ul>
-      <li><a href="./dashboard.html" class="active">📊 Dashboard</a></li>
-      <li><a href="./admin.html">👑 Admin Panel</a></li>
-      <li><a href="./index.html" onclick="logout()">🚪 Logout</a></li>
-    </ul>
-  </nav>
-
-  <!-- === MAIN CONTAINER === -->
   <div class="container">
-    <h1>Selamat Datang di Dashboard</h1>
+    <header class="header">
+      <h2>Dashboard</h2>
+      <div class="header-actions">
+        <button id="btnToggleTheme" class="btn">🌙/☀️</button>
+        <button id="btnLogout" class="btn danger">Logout</button>
+      </div>
+    </header>
 
-    <!-- Info Akun -->
-    <div class="card">
-      <h2>💼 Info Akun</h2>
-      <p><b>Email:</b> <span id="email"></span></p>
-      <p><b>Saldo BTC:</b> <span id="balanceBtc">0.00000000</span></p>
-      <p><b>Saldo USD:</b> $<span id="usdBalance">0.00</span></p>
-      <p><b>Hashrate:</b> <span id="hashrate">0.00100000</span> BTC / hari</p>
-      <p><b>VIP:</b> <span id="vipLevel">0</span></p>
+    <div class="grid">
+      <div class="card">
+        <h3>Profil</h3>
+        <p><strong>Email:</strong> <span id="userEmail">-</span></p>
+        <p><strong>UID:</strong> <span id="userUid">-</span></p>
+        <p><strong>Level VIP:</strong> <span id="vipLevel">Free</span></p>
+      </div>
+
+      <div class="card">
+        <h3>Statistik</h3>
+        <p><strong>Hashrate:</strong> <span id="hashrate">0</span> H/s</p>
+        <p><strong>Saldo BTC:</strong> <span id="balanceBTC">0.00000000</span> BTC</p>
+        <p><strong>Estimasi USD:</strong> $<span id="balanceUSD">0.00</span></p>
+      </div>
+
+      <div class="card">
+        <h3>Iklan Harian</h3>
+        <p><strong>Dilihat hari ini:</strong> <span id="adsToday">0</span>/20</p>
+        <button id="btnWatchAd" class="btn">Nonton Iklan (Bonus Hashrate)</button>
+      </div>
+
+      <div class="card">
+        <h3>Mining</h3>
+        <div class="progress">
+          <div id="mineBar" class="progress-bar" style="width: 0%"></div>
+        </div>
+        <div class="row">
+          <button id="btnStart" class="btn primary">Start</button>
+          <button id="btnStop" class="btn">Stop</button>
+        </div>
+        <p id="mineMsg" class="muted"></p>
+      </div>
     </div>
 
-    <!-- Mining Section -->
-    <div class="card">
-      <h2>⛏️ Mining Status</h2>
-      <p id="miningStatus">Mining berjalan...</p>
-      <progress id="progressBar" max="100" value="0"></progress>
-      <p><b>Total Mining Hari Ini:</b> <span id="dailyMining">0.00000000</span> BTC</p>
-    </div>
-
-    <!-- Ads Section -->
-    <div class="card">
-      <h2>📺 Nonton Iklan untuk Bonus</h2>
-      <p>Tambah hashrate dengan menonton iklan (max 20 / hari).</p>
-      <button id="watchAdBtn" class="secondary">▶️ Nonton Iklan</button>
-      <p><span id="adsWatched">0</span>/20 iklan ditonton hari ini</p>
-    </div>
+    <p id="dashMsg" class="muted"></p>
   </div>
 
-  <script type="module">
-    import { auth, logout, getUserData, watchAd } from './app.js';
-
-    // Toggle theme
-    window.toggleTheme = function() {
-      document.body.classList.toggle("light");
-    };
-
-    // Logout
-    window.logout = function() {
-      logout();
-    };
-
-    // Ambil data user
-    async function loadDashboard() {
-      const user = auth.currentUser;
-      if (!user) {
-        window.location.href = "./index.html";
-        return;
-      }
-      const data = await getUserData(user.uid);
-      if (data) {
-        document.getElementById("email").textContent = user.email;
-        document.getElementById("balanceBtc").textContent = (data.balanceBtc || 0).toFixed(8);
-        document.getElementById("usdBalance").textContent = (data.usdBalance || 0).toFixed(2);
-        document.getElementById("hashrate").textContent = (data.miningRatePerDayBtc || 0.001).toFixed(8);
-        document.getElementById("vipLevel").textContent = data.vipLevel || 0;
-        document.getElementById("adsWatched").textContent = data.adsWatchedToday || 0;
-      }
-    }
-
-    // Nonton iklan
-    document.getElementById("watchAdBtn").onclick = async () => {
-      await watchAd();
-      loadDashboard();
-    };
-
-    loadDashboard();
-  </script>
+  <script type="module" src="dashboard.js"></script>
 </body>
 </html>

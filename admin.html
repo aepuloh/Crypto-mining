@@ -1,100 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <title>Crypto Mining | Admin Panel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="./styles.css" rel="stylesheet" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Crypto Mining</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Tombol Dark/Light -->
-  <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-
-  <!-- === NAVBAR === -->
-  <nav class="navbar">
-    <h2>⚡ Crypto Mining</h2>
-    <ul>
-      <li><a href="./dashboard.html">📊 Dashboard</a></li>
-      <li><a href="./admin.html" class="active">👑 Admin Panel</a></li>
-      <li><a href="./index.html" onclick="logout()">🚪 Logout</a></li>
-    </ul>
-  </nav>
-
-  <!-- === MAIN CONTAINER === -->
   <div class="container">
-    <h1>👑 Admin Panel</h1>
-    <p>Kelola pengguna, saldo, dan VIP level.</p>
+    <header class="header">
+      <h2>Admin Panel (Read-only)</h2>
+      <div class="header-actions">
+        <a class="btn" href="dashboard.html">↩ Dashboard</a>
+        <button id="btnLogoutAdmin" class="btn danger">Logout</button>
+      </div>
+    </header>
 
     <div class="card">
-      <h2>📋 Daftar User</h2>
-      <table>
+      <p class="muted">Hanya UID yang ada di <code>ADMIN_UIDS</code> yang bisa melihat data ini.</p>
+      <table class="table">
         <thead>
           <tr>
             <th>UID</th>
             <th>Email</th>
-            <th>BTC</th>
-            <th>USD</th>
-            <th>Hashrate</th>
             <th>VIP</th>
-            <th>Iklan</th>
-            <th>VIP Exp</th>
-            <th>Aksi</th>
+            <th>Hashrate</th>
+            <th>Saldo BTC</th>
+            <th>Iklan Hari Ini</th>
+            <th>Terakhir Update</th>
           </tr>
         </thead>
-        <tbody id="userList"></tbody>
+        <tbody id="usersTbody"></tbody>
       </table>
+      <p id="adminMsg" class="muted"></p>
     </div>
   </div>
 
-  <script type="module">
-    import { auth, logout, getAllUsers, topupUsd, deductUsd, resetAds, setVip } from './app.js';
-
-    // Theme switch
-    window.toggleTheme = function() {
-      document.body.classList.toggle("light");
-    };
-
-    // Logout
-    window.logout = function() {
-      logout();
-    };
-
-    // Load Users
-    async function loadUsers() {
-      const users = await getAllUsers();
-      const tbody = document.getElementById("userList");
-      tbody.innerHTML = "";
-
-      users.forEach(u => {
-        const vipExpire = u.vipExpire ? new Date(u.vipExpire).toLocaleDateString() : "-";
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${u.uid}</td>
-          <td>${u.email || '-'}</td>
-          <td>${(u.balanceBtc || 0).toFixed(8)}</td>
-          <td>$${(u.usdBalance || 0).toFixed(2)}</td>
-          <td>${(u.miningRatePerDayBtc || 0).toFixed(8)}</td>
-          <td>VIP ${u.vipLevel || 0}</td>
-          <td>${u.adsWatchedToday || 0}/20</td>
-          <td>${vipExpire}</td>
-          <td class="row">
-            <button onclick="topupUsd('${u.uid}',1)" class="secondary">$+1</button>
-            <button onclick="deductUsd('${u.uid}',1)" class="danger">$-1</button>
-            <button onclick="resetAds('${u.uid}')">Reset Ads</button>
-            <button onclick="setVipPrompt('${u.uid}')">Set VIP</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Prompt Set VIP
-    window.setVipPrompt = function(uid) {
-      const level = prompt("Masukkan level VIP:");
-      if (level !== null) setVip(uid, parseInt(level));
-    };
-
-    loadUsers();
-  </script>
+  <script type="module" src="admin.js"></script>
 </body>
 </html>

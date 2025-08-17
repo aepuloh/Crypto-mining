@@ -1,102 +1,125 @@
-import { initFirebase, auth, db, onAuth, logout, startMiningLoop, clientDailyResetIfNeeded, watchAd, buyVIP2, BASE_RATE_DAY_BTC, TARGET_RATE_WITH_ADS, MAX_ADS } from './app.js';
-import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { auth, db } from "./firebase-config.js";
+import {
+  onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js";
+import {
+  doc, getDoc, setDoc, updateDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js";
 
-// --- UI helper
-function showToast(message){
-  const el = document.getElementById('toast');
-  const msg = document.getElementById('toastMessage');
-  msg.textContent = message;
-  el.classList.add('show');
-  el.classList.remove('hidden');
-  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.classList.add('hidden'), 300); }, 3000);
-}
+const $ = (id)=>document.getElementById(id);
+let miningTimer = null;
 
-function startDailyResetCountdown(){
-  const el = document.getElementById('dailyCountdown');
-  function tick(){
-    const now = new Date();
-    const midnight = new Date(); midnight.setHours(24,0,0,0);
-    const diff = midnight - now;
-    if (diff <= 0){
-      el.textContent = '⏳ Reset sedang diproses...';
-      setTimeout(()=>{
-        el.textContent = 'Reset dalam 24j 0m 0d';
-        showToast('✅ Reset harian berhasil, iklan bisa ditonton lagi!');
-      }, 1500);
-      return;
-    }
-    const h = Math.floor(diff/3600000);
-    const m = Math.floor((diff%3600000)/60000);
-    const s = Math.floor((diff%60000)/1000);
-    el.textContent = `Reset dalam ${h}j ${m}m ${s}d`;
-  }
-  tick();
-  setInterval(tick, 1000);
-}
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return location.href = "index.html";
+  $("userEmail").textContent = user.email;
+  $("userUid").textContent = user.uid;
 
-async function refreshUI(uid){
-  const ref = doc(db, 'users', uid);
+  await ensureUserDoc(user);
+  await loadDashboard(user.uid);
+});
+
+async function ensureUserDoc(user){
+  const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
-  const u = snap.data();
-
-  document.getElementById('balanceBtc').textContent = (u.balanceBtc || 0).toFixed(8);
-  document.getElementById('usdBalance').textContent = (u.usdBalance || 0).toFixed(2);
-  document.getElementById('vipLevel').textContent = `VIP ${u.vipLevel || 0}`;
-  document.getElementById('rateDay').textContent = (u.miningRatePerDayBtc || BASE_RATE_DAY_BTC).toFixed(8);
-  document.getElementById('adsToday').textContent = `${u.adsWatchedToday || 0}/${MAX_ADS}`;
+  if (!snap.exists()){
+    await setDoc(ref, {
+      email: user.email,
+      vipLevel: "Free",
+      hashrate: 10,
+      balanceBTC: 0,
+      balanceUSD: 0,
+      adsToday: 0,
+      adsDay: todayStr(),
+      updatedAt: serverTimestamp(),
+    });
+  }
 }
 
-function liveBind(uid){
-  const ref = doc(db, 'users', uid);
-  return onSnapshot(ref, (snap)=>{
-    if (!snap.exists()) return;
-    const u = snap.data();
-    document.getElementById('balanceBtc').textContent = (u.balanceBtc || 0).toFixed(8);
-    document.getElementById('usdBalance').textContent = (u.usdBalance || 0).toFixed(2);
-    document.getElementById('vipLevel').textContent = `VIP ${u.vipLevel || 0}`;
-    document.getElementById('rateDay').textContent = (u.miningRatePerDayBtc || BASE_RATE_DAY_BTC).toFixed(8);
-    document.getElementById('adsToday').textContent = `${u.adsWatchedToday || 0}/${MAX_ADS}`;
-  });
+async function loadDashboard(uid){
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const d = snap.data();
+
+  // reset iklan harian jika beda hari
+  if (d.adsDay !== todayStr()){
+    await updateDoc(ref, { adsToday: 0, adsDay: todayStr(), updatedAt: serverTimestamp() });
+    d.adsToday = 0; d.adsDay = todayStr();
+  }
+
+  $("vipLevel").textContent = d.vipLevel || "Free";
+  $("hashrate").textContent = d.hashrate ?? 0;
+  $("balanceBTC").textContent = (d.balanceBTC ?? 0).toFixed(8);
+  $("balanceUSD").textContent = (d.balanceUSD ?? 0).toFixed(2);
+  $("adsToday").textContent = d.adsToday ?? 0;
 }
 
-// --- main
-initFirebase();
+// Theme toggle
+$("btnToggleTheme")?.addEventListener("click", () => {
+  document.documentElement.classList.toggle("light");
+});
 
-document.getElementById('logoutBtn').onclick = logout;
-document.getElementById('watchAdBtn').onclick = async ()=>{
-  const user = auth.currentUser;
-  if (!user) return;
-  try{
-    const res = await watchAd(user.uid);
-    showToast(`🎥 Iklan ke-${res.watched}. Rate: ${(res.newRate).toFixed(8)} BTC/hari`);
-  }catch(e){
-    showToast('❌ ' + (e?.message||e));
-  }
-};
-document.getElementById('buyVip2Btn').onclick = async ()=>{
-  const user = auth.currentUser;
-  if (!user) return;
-  try{
-    const { end } = await buyVIP2(user.uid);
-    const d = new Date(end);
-    showToast(`💎 VIP2 aktif s.d. ${d.toLocaleString()}`);
-  }catch(e){
-    showToast('❌ ' + (e?.message||e));
-  }
-};
+// Mining simulation (UI-only)
+$("btnStart")?.addEventListener("click", () => startMining());
+$("btnStop")?.addEventListener("click", () => stopMining("Dihentikan."));
 
-let unsub = null;
+function startMining(){
+  if (miningTimer) return;
+  $("mineMsg").textContent = "Mining berjalan (simulasi UI).";
+  let p = 0;
+  miningTimer = setInterval(()=>{
+    p = (p + 2) % 100;
+    $("mineBar").style.width = p + "%";
+  }, 200);
+}
+function stopMining(msg="Mining berhenti."){
+  if (miningTimer){ clearInterval(miningTimer); miningTimer = null; }
+  $("mineBar").style.width = "0%";
+  $("mineMsg").textContent = msg;
+}
 
-onAuth(async (user)=>{
-  if (!user){
-    // redirect sederhana
-    window.location.href = './index.html';
+// Watch Ad bonus (max 20/hari)
+$("btnWatchAd")?.addEventListener("click", async ()=>{
+  const u = auth.currentUser; if (!u) return;
+  const ref = doc(db, "users", u.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const d = snap.data();
+
+  // reset jika hari berganti
+  let adsToday = d.adsToday ?? 0; let adsDay = d.adsDay ?? todayStr();
+  if (adsDay !== todayStr()) { adsToday = 0; adsDay = todayStr(); }
+
+  if (adsToday >= 20){
+    $("dashMsg").textContent = "Batas iklan hari ini tercapai (20).";
     return;
   }
-  await clientDailyResetIfNeeded(user.uid);
-  await refreshUI(user.uid);
-  if (unsub) unsub(); // cleanup
-  unsub = liveBind(user.uid);
-  startDailyResetCountdown();
-  startMiningLoop(user.uid);
+
+  // simulasi menonton iklan 3 detik
+  $("dashMsg").textContent = "Menonton iklan...";
+  await sleep(3000);
+
+  const bonus = 1; // tambah 1 H/s per iklan
+  const newHash = (d.hashrate ?? 0) + bonus;
+  const newAds = adsToday + 1;
+  await updateDoc(ref, {
+    hashrate: newHash,
+    adsToday: newAds,
+    adsDay: todayStr(),
+    updatedAt: serverTimestamp(),
+  });
+
+  $("hashrate").textContent = newHash;
+  $("adsToday").textContent = newAds;
+  $("dashMsg").textContent = `Iklan selesai. Hashrate +${bonus} H/s`;
 });
+
+// Logout
+$("btnLogout")?.addEventListener("click", async ()=>{
+  stopMining();
+  await signOut(auth);
+  location.href = "index.html";
+});
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }

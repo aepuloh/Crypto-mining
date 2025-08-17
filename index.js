@@ -1,40 +1,88 @@
-// Import Firebase
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } 
-  from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { auth, db } from "./firebase-config.js";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js";
 
-// Konfigurasi Firebase (isi punyamu)
-const firebaseConfig = {
-  apiKey: "AIzaSyCc4ix1uGCaE-rsyM6Lg3jo6SzVjbXYCmw",
-  authDomain: "crypto-mining-d3811.firebaseapp.com",
-  projectId: "crypto-mining-d3811",
-  storageBucket: "crypto-mining-d3811.firebasestorage.app",
-  messagingSenderId: "1068882455445",
-  appId: "1:1068882455445:web:362538bf3bb36c598f649c"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const el = (id) => document.getElementById(id);
+const authMsg = el("authMsg");
 
-// Login
-document.getElementById("btnLogin").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    window.location.href = "dashboard.html"; // redirect ke dashboard
-  } catch (e) {
-    document.getElementById("message").innerText = e.message;
+// Tabs
+const tabLogin = el("tabLogin");
+const tabRegister = el("tabRegister");
+const loginPane = el("loginPane");
+const registerPane = el("registerPane");
+
+function showTab(tab) {
+  if (tab === "login") {
+    loginPane.classList.add("shown");
+    registerPane.classList.remove("shown");
+    tabLogin.classList.add("active");
+    tabRegister.classList.remove("active");
+  } else {
+    registerPane.classList.add("shown");
+    loginPane.classList.remove("shown");
+    tabRegister.classList.add("active");
+    tabLogin.classList.remove("active");
   }
+}
+
+tabLogin?.addEventListener("click", () => showTab("login"));
+tabRegister?.addEventListener("click", () => showTab("register"));
+
+// Auth handlers
+el("btnLogin")?.addEventListener("click", async () => {
+  const email = el("loginEmail").value.trim();
+  const pass = el("loginPassword").value;
+  if (!email || !pass) return toast("Isi email & password");
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    location.href = "dashboard.html";
+  } catch (e) { toast(parseError(e)); }
 });
 
-// Register
-document.getElementById("btnRegister").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+el("btnRegister")?.addEventListener("click", async () => {
+  const email = el("regEmail").value.trim();
+  const pass = el("regPassword").value;
+  if (!email || pass.length < 6) return toast("Password minimal 6 karakter");
   try {
-    await createUserWithEmailAndPassword(auth, email, password);
-    document.getElementById("message").innerText = "Pendaftaran berhasil, silakan login.";
-  } catch (e) {
-    document.getElementById("message").innerText = e.message;
-  }
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    // buat dokumen user awal
+    const ref = doc(db, "users", cred.user.uid);
+    await setDoc(ref, {
+      email,
+      vipLevel: "Free",
+      hashrate: 10, // default
+      balanceBTC: 0,
+      balanceUSD: 0,
+      adsToday: 0,
+      adsDay: todayStr(),
+      updatedAt: serverTimestamp(),
+    });
+    location.href = "dashboard.html";
+  } catch (e) { toast(parseError(e)); }
 });
+
+onAuthStateChanged(auth, (u) => {
+  // kalau sudah login dan ada di halaman ini, langsung ke dashboard
+  if (u) location.href = "dashboard.html";
+});
+
+function toast(msg){ authMsg.textContent = msg; }
+function parseError(e){
+  const m = e?.message || String(e);
+  if (m.includes("auth/invalid-credential")) return "Email atau password salah";
+  if (m.includes("auth/email-already-in-use")) return "Email sudah terdaftar";
+  return m;
+}
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}

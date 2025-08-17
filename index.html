@@ -1,72 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <title>Crypto Mining | Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="./styles.css" rel="stylesheet" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Mining - Login / Daftar</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="container slide-in">
-    <h1>⚡ Crypto Mining</h1>
-    <button id="themeToggle" class="theme-btn">🌙 / ☀️</button>
+  <div class="container">
+    <h1>Crypto Mining</h1>
 
     <div class="card">
-      <h2>Masuk / Daftar</h2>
-      <input id="email" type="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Password" />
-      <div class="row">
-        <button id="loginBtn" class="success">Login</button>
-        <button id="registerBtn" class="secondary">Daftar</button>
+      <div class="tabs">
+        <button id="tabLogin" class="tab active">Login</button>
+        <button id="tabRegister" class="tab">Daftar</button>
       </div>
+
+      <div id="loginPane" class="pane shown">
+        <label>Email</label>
+        <input id="loginEmail" type="email" placeholder="email@example.com" />
+        <label>Password</label>
+        <input id="loginPassword" type="password" placeholder="••••••••" />
+        <button id="btnLogin" class="btn primary">Login</button>
+      </div>
+
+      <div id="registerPane" class="pane">
+        <label>Email</label>
+        <input id="regEmail" type="email" placeholder="email@example.com" />
+        <label>Password</label>
+        <input id="regPassword" type="password" placeholder="Minimal 6 karakter" />
+        <button id="btnRegister" class="btn">Daftar</button>
+      </div>
+
       <p id="authMsg" class="muted"></p>
     </div>
   </div>
 
-  <script type="module">
-    import { initFirebase, auth, register, login } from './app.js';
-    import { getDoc, doc, getFirestore } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-
-    initFirebase();
-    const db = getFirestore();
-
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
-    const msg = document.getElementById('authMsg');
-
-    // LOGIN
-    document.getElementById('loginBtn').onclick = async () => {
-      msg.textContent = '🔄 Logging in...';
-      try {
-        const user = await login(email.value, password.value);
-
-        // cek role admin / user
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists() && snap.data().isAdmin) {
-          window.location.href = "./admin.html";
-        } else {
-          window.location.href = "./dashboard.html";
-        }
-      } catch (e) {
-        msg.textContent = '❌ ' + (e?.message || e);
-      }
-    };
-
-    // REGISTER
-    document.getElementById('registerBtn').onclick = async () => {
-      msg.textContent = '🔄 Register...';
-      try {
-        await register(email.value, password.value);
-        msg.textContent = '✅ Akun dibuat. Silakan login.';
-      } catch (e) {
-        msg.textContent = '❌ ' + (e?.message || e);
-      }
-    };
-
-    // Toggle theme
-    document.getElementById('themeToggle').onclick = () => {
-      document.body.classList.toggle("light");
-    };
-  </script>
+  <script type="module" src="index.js"></script>
 </body>
 </html>
