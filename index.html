@@ -1,28 +1,72 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crypto Mining (GST) - Login</title>
-  <link rel="stylesheet" href="style.css">
+  <title>GST Mining App</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="auth-container">
-    <div class="auth-box">
-      <h2>Login</h2>
-      <input type="email" placeholder="Email" id="loginEmail">
-      <input type="password" placeholder="Password" id="loginPassword">
-      <button onclick="login()">Login</button>
-    </div>
-
-    <div class="auth-box">
-      <h2>Daftar</h2>
-      <input type="email" placeholder="Email" id="registerEmail">
-      <input type="password" placeholder="Password" id="registerPassword">
-      <button onclick="register()">Daftar</button>
-    </div>
+  <!-- Login/Register -->
+  <div id="authPage" class="page active">
+    <h2>GST Mining</h2>
+    <input type="text" id="username" placeholder="Masukkan username">
+    <input type="text" id="referral" placeholder="Kode referral (opsional)">
+    <button onclick="registerUser()">Daftar / Masuk</button>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Dashboard -->
+  <div id="dashboardPage" class="page">
+    <header>
+      <h2 id="welcomeUser">Hi, User</h2>
+      <p>Saldo: <span id="balance">0</span> GST</p>
+    </header>
+
+    <main>
+      <div class="card">
+        <h3>Mining</h3>
+        <p>Rate: <span id="rate">0</span>/hari</p>
+        <button id="startMiningBtn" onclick="startMining()">▶ Mulai Mining</button>
+      </div>
+
+      <div class="card">
+        <h3>Earn More</h3>
+        <button onclick="watchAd()">🎥 Nonton Iklan (+1 rate)</button>
+        <p>Limit iklan harian: <span id="adsUsed">0</span>/20</p>
+      </div>
+
+      <div class="card">
+        <h3>Upgrade</h3>
+        <button onclick="upgradeVip()">⬆️ Upgrade VIP1 (100/hari)</button>
+        <p>Status VIP: <span id="vipLevel">0</span></p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Wallet -->
+  <div id="walletPage" class="page">
+    <h2>Wallet</h2>
+    <p>Saldo: <span id="walletBalance">0</span> GST</p>
+    <button onclick="deposit()">➕ Deposit (demo)</button>
+    <button onclick="withdraw()">⬇️ Tarik (demo)</button>
+    <div id="history"></div>
+  </div>
+
+  <!-- Referral -->
+  <div id="referralPage" class="page">
+    <h2>Referral</h2>
+    <p>Kode referral Anda: <span id="myReferral"></span></p>
+    <button onclick="copyReferral()">📋 Salin</button>
+    <div id="teamList"></div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button onclick="showPage('dashboardPage')">🏠 Home</button>
+    <button onclick="showPage('walletPage')">💰 Wallet</button>
+    <button onclick="showPage('referralPage')">👥 Tim</button>
+  </nav>
+
+  <script src="app.js"></script>
 </body>
 </html>

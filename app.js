@@ -1,181 +1,109 @@
-// app.js - core logic (init, auth, mining simulation, ads, vip)
-// NOTE: requires firebase-config.js in same folder (with firebaseConfig & ADMIN_UIDS)
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { firebaseConfig, ADMIN_UIDS } from "./firebase-config.js";
-
-// Business constants
-export const BASE_RATE_DAY_BTC = 0.001;            // base BTC / day
-export const MAX_ADS = 20;
-export const TARGET_RATE_WITH_ADS = 0.002;         // after 20 ads
-export const BONUS_PER_AD_DAY_BTC = (TARGET_RATE_WITH_ADS - BASE_RATE_DAY_BTC) / MAX_ADS;
-export const VIP2_PRICE_USD = 5;
-export const VIP2_DAYS = 6;
-export const VIP2_RATE_DAY_BTC = 0.003;
-
-// Singletons
-export let app = null, auth = null, db = null;
+let user = JSON.parse(localStorage.getItem("gstUser")) || null;
 let miningInterval = null;
 
-// init firebase (call once)
-export function initFirebase() {
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-  }
-  // re-get services
-  auth = getAuth();
-  db = getFirestore();
+function saveUser() {
+  localStorage.setItem("gstUser", JSON.stringify(user));
 }
 
-// --------- Auth funcs ---------
-export async function register(email, password) {
-  const cred = await createUserWithEmailAndPassword(getAuth(), email, password);
-  const ref = doc(getFirestore(), "users", cred.user.uid);
-  await setDoc(ref, {
-    uid: cred.user.uid,
-    email,
-    balanceBtc: 0,
-    usdBalance: 0,
-    vipLevel: 0,
-    miningRatePerDayBtc: BASE_RATE_DAY_BTC,
-    adsWatchedToday: 0,
-    lastAdWatchDate: new Date().toDateString(),
-    miningStart: null,
-    vipContractEnd: null,
-    createdAt: serverTimestamp()
-  });
-  return cred;
-}
+function registerUser() {
+  const username = document.getElementById("username").value.trim();
+  const referral = document.getElementById("referral").value.trim();
+  if (!username) return alert("Masukkan username");
 
-export function login(email, password) {
-  return signInWithEmailAndPassword(getAuth(), email, password);
-}
+  user = {
+    name: username,
+    balance: 0,
+    rate: 5,
+    vip: 0,
+    referralCode: username + Math.floor(Math.random()*1000),
+    team: [],
+    adsUsed: 0
+  };
 
-export function logout() {
-  return signOut(getAuth());
-}
-
-// onAuth: wrapper for page listeners
-export function onAuth(cb) {
-  return onAuthStateChanged(getAuth(), cb);
-}
-
-// --------- Mining loop (simulation) ---------
-// start mining loop for a given uid (client-side simulation which updates Firestore)
-export async function startMiningLoop(uid) {
-  stopMiningLoop();
-  const ref = doc(getFirestore(), "users", uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-  let u = snap.data();
-
-  // set miningStart if null
-  if (!u.miningStart) {
-    await updateDoc(ref, { miningStart: Date.now() });
-    u.miningStart = Date.now();
+  if (referral) {
+    user.team.push("Referred by " + referral);
   }
 
-  miningInterval = setInterval(async () => {
-    const s = await getDoc(ref);
-    if (!s.exists()) { stopMiningLoop(); return; }
-    const user = s.data();
-
-    // check if 24h passed since miningStart
-    if (!user.miningStart) {
-      // no active mining session
-      return;
-    }
-    const elapsed = (Date.now() - user.miningStart) / 1000; // seconds
-    if (elapsed >= 86400) {
-      // stop session automatically (client marks miningStart null)
-      await updateDoc(ref, { miningStart: null });
-      stopMiningLoop();
-      return;
-    }
-
-    // add per-second earnings
-    const perSec = (user.miningRatePerDayBtc || BASE_RATE_DAY_BTC) / 86400;
-    const newBal = (user.balanceBtc || 0) + perSec;
-    await updateDoc(ref, { balanceBtc: newBal });
-  }, 1000);
+  saveUser();
+  loadDashboard();
+  showPage("dashboardPage");
 }
 
-export function stopMiningLoop() {
-  if (miningInterval) clearInterval(miningInterval);
-  miningInterval = null;
+function loadDashboard() {
+  if (!user) return;
+  document.getElementById("welcomeUser").textContent = "Hi, " + user.name;
+  document.getElementById("balance").textContent = user.balance.toFixed(2);
+  document.getElementById("walletBalance").textContent = user.balance.toFixed(2);
+  document.getElementById("rate").textContent = user.rate;
+  document.getElementById("vipLevel").textContent = user.vip;
+  document.getElementById("myReferral").textContent = user.referralCode;
+  document.getElementById("adsUsed").textContent = user.adsUsed;
+  updateHistory();
 }
 
-// --------- Ads & VIP ---------
-export async function watchAd(uid) {
-  const ref = doc(getFirestore(), "users", uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) throw new Error("User not found");
-  const u = snap.data();
-  if (u.vipLevel && u.vipLevel !== 0) throw new Error("Ads only for VIP 0 users");
-  if ((u.adsWatchedToday || 0) >= MAX_ADS) throw new Error("Limit ads reached today");
-
-  const watched = (u.adsWatchedToday || 0) + 1;
-  let newRate = BASE_RATE_DAY_BTC + watched * BONUS_PER_AD_DAY_BTC;
-  if (newRate > TARGET_RATE_WITH_ADS) newRate = TARGET_RATE_WITH_ADS;
-
-  await updateDoc(ref, {
-    adsWatchedToday: watched,
-    miningRatePerDayBtc: newRate,
-    lastAdWatchDate: new Date().toDateString()
-  });
-  return { watched, newRate };
+function startMining() {
+  if (miningInterval) return alert("Mining sudah berjalan");
+  miningInterval = setInterval(() => {
+    user.balance += user.rate/8640; // tiap 10 detik = 1/8640 hari
+    saveUser();
+    loadDashboard();
+  }, 10000);
+  alert("Mining dimulai!");
 }
 
-export async function buyVIP2(uid) {
-  const ref = doc(getFirestore(), "users", uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) throw new Error("User not found");
-  const u = snap.data();
-  if ((u.usdBalance || 0) < VIP2_PRICE_USD) throw new Error("Insufficient USD balance");
-
-  const end = Date.now() + VIP2_DAYS * 24 * 60 * 60 * 1000;
-  await updateDoc(ref, {
-    usdBalance: (u.usdBalance || 0) - VIP2_PRICE_USD,
-    vipLevel: 2,
-    vipContractEnd: end,
-    miningRatePerDayBtc: VIP2_RATE_DAY_BTC
-  });
-  return { end };
+function watchAd() {
+  if (user.adsUsed >= 20) return alert("Batas iklan harian tercapai");
+  if (user.rate >= 40 && user.vip === 0) return alert("Upgrade VIP untuk menaikkan lagi");
+  user.rate += 1;
+  user.adsUsed += 1;
+  saveUser();
+  loadDashboard();
 }
 
-// client-side daily reset (fallback if no server cron)
-export async function clientDailyResetIfNeeded(uid) {
-  const ref = doc(getFirestore(), "users", uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-  const u = snap.data();
-  const today = new Date().toDateString();
+function upgradeVip() {
+  if (user.vip >= 1) return alert("Sudah VIP1");
+  if (user.balance < 50) return alert("Butuh 50 GST untuk upgrade");
+  user.balance -= 50;
+  user.vip = 1;
+  user.rate = 100;
+  saveUser();
+  loadDashboard();
+}
 
-  if (u.lastAdWatchDate !== today) {
-    // if VIP2 active, preserve; else base rate
-    let base = BASE_RATE_DAY_BTC;
-    if (u.vipLevel === 2 && u.vipContractEnd && Date.now() < u.vipContractEnd) {
-      base = (u.miningRatePerDayBtc || VIP2_RATE_DAY_BTC);
-    }
-    await updateDoc(ref, {
-      adsWatchedToday: 0,
-      miningRatePerDayBtc: base,
-      lastAdWatchDate: today
-    });
-  }
+function deposit() {
+  user.balance += 100;
+  updateHistory("Deposit 100 GST");
+  saveUser();
+  loadDashboard();
+}
 
-  // if VIP2 expired, drop
-  if (u.vipLevel === 2 && u.vipContractEnd && Date.now() >= u.vipContractEnd) {
-    await updateDoc(ref, {
-      vipLevel: 0,
-      vipContractEnd: null,
-      miningRatePerDayBtc: BASE_RATE_DAY_BTC
-    });
-  }
+function withdraw() {
+  if (user.balance < 10) return alert("Minimal 10 GST untuk tarik");
+  user.balance -= 10;
+  updateHistory("Withdraw 10 GST");
+  saveUser();
+  loadDashboard();
+}
+
+function updateHistory(text="") {
+  if (!user.history) user.history = [];
+  if (text) user.history.push(text);
+  const div = document.getElementById("history");
+  div.innerHTML = "<h3>Riwayat:</h3>" + user.history.map(h => "<p>"+h+"</p>").join("");
+}
+
+function copyReferral() {
+  navigator.clipboard.writeText(user.referralCode);
+  alert("Kode referral disalin!");
+}
+
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+// Auto load
+if (user) {
+  loadDashboard();
+  showPage("dashboardPage");
 }
