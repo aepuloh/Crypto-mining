@@ -1,61 +1,36 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dashboard • Crypto Mining (GST)</title>
-<link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Mining (GST) - Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header id="navbar"></header>
-  <div class="container">
-    <h2>Dashboard</h2>
-    <div class="grid">
-      <div class="card">
-        <h3>Mining Status (GST)</h3>
-        <p><strong>Status:</strong> <span id="mineStatus">Idle</span></p>
-        <p><strong>Rate Harian:</strong> <span id="rateDaily">0</span> GST/day</p>
-        <div class="progress"><div id="mineBar" class="progress-bar" style="width:0%"></div></div>
-        <div class="row">
-          <button id="btnStart" class="btn primary">Start</button>
-          <button id="btnStop" class="btn">Stop</button>
-        </div>
-        <p id="mineMsg" class="muted"></p>
-      </div>
+  <h1 class="title">Crypto Mining (GST)</h1>
 
-      <div class="card">
-        <h3>Upgrade VIP & Iklan</h3>
-        <p>Level: <strong id="vipLevel">VIP 0</strong></p>
-        <p>VIP0: 20 GST/day (+1 per iklan, max 20 iklan → 40/day)</p>
-        <p>VIP1: 100 GST/day • kontrak 7 hari • harga $5</p>
-        <div class="row">
-          <button id="btnWatchAd" class="btn">Nonton Iklan (+1 rate/day)</button>
-          <button id="btnBuyVIP1" class="btn primary">Upgrade VIP1 ($5)</button>
-        </div>
-        <p id="vipMsg" class="muted"></p>
-      </div>
+  <div class="dashboard">
+    <div class="card">
+      <h3>Mining Status (GST)</h3>
+      <p>Status: <span id="status">Idle</span></p>
+      <p>Rate Harian: <span id="rate">0</span> GST/day</p>
+      <button onclick="startMining()">Start</button>
+      <button onclick="stopMining()">Stop</button>
+    </div>
 
-      <div class="card">
-        <h3>Deposit</h3>
-        <p>Scan QRIS berikut (admin wallet) atau transfer, lalu upload bukti.</p>
-        <img id="qrisImg" src="" alt="QRIS admin" style="max-width:220px; display:block; margin-bottom:8px;"/>
-        <label>Nominal (USD)</label>
-        <input id="depAmount" type="number" min="1" step="0.01" />
-        <label>Bukti (link atau nama file)</label>
-        <input id="depProof" type="text" placeholder="URL bukti / keterangan" />
-        <button id="btnSubmitDep" class="btn">Kirim Request Deposit</button>
-        <p id="depMsg" class="muted"></p>
-      </div>
+    <div class="card">
+      <h3>Balance</h3>
+      <p>Total Balance: <span id="balance">0</span> GST</p>
+    </div>
 
-      <div class="card">
-        <h3>Balances</h3>
-        <p>GST Balance: <strong id="balGst">0</strong> GST</p>
-        <p>USD Deposit Balance: $<strong id="balUsd">0.00</strong></p>
-        <p>Last Claim: <span id="lastClaim">-</span></p>
-      </div>
+    <div class="card">
+      <h3>Upgrade VIP & Iklan</h3>
+      <p>Level: <span id="vipLevel">VIP 0</span></p>
+      <button onclick="watchAd()">Nonton Iklan (+1 rate/day)</button>
+      <button onclick="upgradeVip()">Upgrade VIP1 ($5)</button>
     </div>
   </div>
-<script type="module" src="common.js"></script>
-<script type="module" src="dashboard.js"></script>
+
+  <script src="script.js"></script>
 </body>
 </html>

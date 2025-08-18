@@ -1,36 +1,28 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Login • Crypto Mining (GST)</title>
-<link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Mining (GST) - Login</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container auth">
-    <h1>Crypto Mining (GST)</h1>
-    <div class="card">
-      <div class="tabs">
-        <button id="tabLogin" class="tab active">Login</button>
-        <button id="tabRegister" class="tab">Daftar</button>
-      </div>
-      <div id="loginPane" class="pane shown">
-        <label>Email</label>
-        <input id="loginEmail" type="email" />
-        <label>Password</label>
-        <input id="loginPassword" type="password" />
-        <button id="btnLogin" class="btn primary">Login</button>
-      </div>
-      <div id="registerPane" class="pane">
-        <label>Email</label>
-        <input id="regEmail" type="email" />
-        <label>Password</label>
-        <input id="regPassword" type="password" />
-        <button id="btnRegister" class="btn">Daftar</button>
-      </div>
-      <p id="authMsg" class="muted"></p>
+  <div class="auth-container">
+    <div class="auth-box">
+      <h2>Login</h2>
+      <input type="email" placeholder="Email" id="loginEmail">
+      <input type="password" placeholder="Password" id="loginPassword">
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div class="auth-box">
+      <h2>Daftar</h2>
+      <input type="email" placeholder="Email" id="registerEmail">
+      <input type="password" placeholder="Password" id="registerPassword">
+      <button onclick="register()">Daftar</button>
     </div>
   </div>
-<script type="module" src="index.js"></script>
+
+  <script src="script.js"></script>
 </body>
 </html>
